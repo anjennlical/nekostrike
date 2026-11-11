@@ -1,6 +1,6 @@
-export type CheckType = 'bola' | 'data_exposure'
+export type CheckType = 'bola' | 'data_exposure' | 'security_misconfiguration'
 export type Evidence = {
-  scenario: 'baseline' | 'cross_user' | 'profile_response' | 'negative_control'
+  scenario: 'baseline' | 'cross_user' | 'profile_response' | 'error_response' | 'negative_control'
   method: 'GET'
   path: string
   actor: string
@@ -41,7 +41,7 @@ export function parseRun(value: unknown): Run {
   const check = record(value) ? (value.check_type === undefined ? 'bola' : value.check_type) : null
   if (
     !record(value) ||
-    !['bola', 'data_exposure'].includes(check as string) ||
+    !['bola', 'data_exposure', 'security_misconfiguration'].includes(check as string) ||
     !hasStrings(value, ['id', 'created_at']) ||
     !Number.isFinite(Date.parse(value.created_at as string)) ||
     !['vulnerable', 'fixed'].includes(value.mode as string) ||
@@ -54,7 +54,11 @@ export function parseRun(value: unknown): Run {
         e.scenario ===
           [
             'baseline',
-            check === 'data_exposure' ? 'profile_response' : 'cross_user',
+            check === 'security_misconfiguration'
+              ? 'error_response'
+              : check === 'data_exposure'
+                ? 'profile_response'
+                : 'cross_user',
             'negative_control',
           ][index] &&
         e.method === 'GET' &&
@@ -97,8 +101,13 @@ export function parseWorkspace(value: unknown): Workspace {
           (run) =>
             run.id === f.run_id &&
             run.verdict === 'vulnerable' &&
-            f.category === (run.check_type === 'data_exposure' ? 'API3:2023' : 'API1:2023') &&
-            f.severity === (run.check_type === 'data_exposure' ? 'medium' : 'high'),
+            f.category ===
+              {
+                bola: 'API1:2023',
+                data_exposure: 'API3:2023',
+                security_misconfiguration: 'API8:2023',
+              }[run.check_type] &&
+            f.severity === (run.check_type === 'bola' ? 'high' : 'medium'),
         ),
     )
   ) {

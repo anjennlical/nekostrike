@@ -3,6 +3,7 @@ const bolaLabels = {
   baseline: 'Controle: pedido da Alice',
   cross_user: 'Teste: pedido do Bob',
   profile_response: 'Teste: campos do perfil público',
+  error_response: 'Teste: resposta de erro',
   negative_control: 'Controle negativo: versão corrigida',
 }
 export default function EvidenceView({
@@ -19,9 +20,22 @@ export default function EvidenceView({
           baseline: 'Controle: perfil público mínimo',
           negative_control: 'Controle: sem identidade',
         }
-      : bolaLabels
+      : checkType === 'security_misconfiguration'
+        ? {
+            ...bolaLabels,
+            baseline: 'Controle: serviço fictício disponível',
+            negative_control: 'Controle: erro genérico',
+          }
+        : bolaLabels
   return (
     <div className="evidence-list">
+      {checkType === 'security_misconfiguration' && (
+        <p className="evidence-expectation">
+          HTTP 500 é intencional neste laboratório. Compare o corpo: <code>debug</code> não deve
+          aparecer. O erro genérico mantém somente <code>detail</code>. Os detalhes expostos são
+          fictícios.
+        </p>
+      )}
       {checkType === 'data_exposure' && (
         <p className="evidence-expectation">
           Campos permitidos: <code>id</code> e <code>display_name</code>. <code>email</code> e{' '}
@@ -36,12 +50,14 @@ export default function EvidenceView({
             <span className="subtle-tag">
               HTTP {item.status}
               {item.status === 200
-                ? checkType === 'data_exposure'
+                ? checkType !== 'bola'
                   ? ' · Resposta recebida'
                   : ' · Permitido'
                 : item.status === 403 || item.status === 401
                   ? ' · Negado'
-                  : ''}
+                  : item.status === 500 && checkType === 'security_misconfiguration'
+                    ? ' · Erro simulado'
+                    : ''}
             </span>
           </summary>
           <p>

@@ -1,4 +1,21 @@
 export const labChecks = {
+  security_misconfiguration: {
+    label: 'Configuração insegura',
+    title: 'Um erro. Nenhum detalhe privado.',
+    eyebrow: '03 / CONFIGURAÇÃO DE ERROS',
+    description:
+      'O laboratório simula uma falha interna. Compare uma resposta que revela detalhes de diagnóstico com outra que entrega somente uma mensagem genérica.',
+    lesson:
+      'HTTP 500 é esperado nos dois cenários deste teste. Ele não significa que o NekoStrike caiu. A correção remove os detalhes da resposta; a falha simulada continua existindo.',
+    vulnerable:
+      'O campo debug revela uma exceção e um caminho de arquivo fictícios. Nenhum arquivo real é lido.',
+    fixed:
+      'A resposta mantém apenas detail com uma mensagem genérica, sem debug. O erro simulado continua com HTTP 500.',
+    vulnerableExpected: 'HTTP 500 com debug; um achado Média é registrado.',
+    fixedExpected: 'HTTP 500 com mensagem genérica, sem novo achado.',
+    vulnerableResult: 'Configuração insegura demonstrada: detalhes internos expostos.',
+    fixedResult: 'Erro genérico retornado, sem detalhes internos neste teste.',
+  },
   bola: {
     label: 'BOLA',
     title: 'Um pedido. Dois usuários. Uma fronteira.',

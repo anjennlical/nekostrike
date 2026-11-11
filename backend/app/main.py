@@ -11,6 +11,7 @@ from pydantic import BaseModel, ConfigDict
 from starlette.middleware.trustedhost import TrustedHostMiddleware
 from .lab import check_bola
 from .exposure import check_exposure
+from .misconfiguration import check_misconfiguration
 from .report import markdown_report, OWASP
 from .store import Store
 
@@ -20,7 +21,7 @@ ORIGINS = ["http://127.0.0.1:5173", "http://localhost:5173",
 
 class LabCapability(BaseModel):
     status: Literal["ready"] = "ready"
-    checks: list[Literal["bola", "data_exposure"]] = ["bola", "data_exposure"]
+    checks: list[Literal["bola", "data_exposure", "security_misconfiguration"]] = ["bola", "data_exposure", "security_misconfiguration"]
 
 
 class AICapability(BaseModel):
@@ -31,7 +32,7 @@ class HealthResponse(BaseModel):
     model_config = ConfigDict(extra="forbid")
     status: Literal["ok"] = "ok"
     service: Literal["nekostrike-api"] = "nekostrike-api"
-    version: str = "0.3.0"
+    version: str = "0.4.0"
     environment: Literal["local"] = "local"
     timestamp: datetime
     lab: LabCapability
@@ -41,7 +42,7 @@ class HealthResponse(BaseModel):
 class RunInput(BaseModel):
     model_config = ConfigDict(extra="forbid")
     mode: Literal["vulnerable", "fixed"]
-    check_type: Literal["bola", "data_exposure"] = "bola"
+    check_type: Literal["bola", "data_exposure", "security_misconfiguration"] = "bola"
 
 
 class ReviewInput(BaseModel):
@@ -61,8 +62,8 @@ def require_workspace(request: Request):
 
 def create_app(db_path: Path | None = None) -> FastAPI:
     store = Store(db_path or Path(__file__).resolve().parents[1] / "data" / "nekostrike.db")
-    app = FastAPI(title="NekoStrike API", version="0.3.0",
-                  description="Local BOLA and data exposure lab, evidence and deterministic reports. No AI provider.",
+    app = FastAPI(title="NekoStrike API", version="0.4.0",
+                  description="Three isolated local checks, evidence and deterministic reports. No AI provider.",
                   docs_url="/api/docs", redoc_url=None, openapi_url="/api/openapi.json")
     app.add_middleware(TrustedHostMiddleware, allowed_hosts=["127.0.0.1", "localhost"])
     app.add_middleware(CORSMiddleware, allow_origins=ORIGINS, allow_credentials=False,
@@ -82,9 +83,9 @@ def create_app(db_path: Path | None = None) -> FastAPI:
 
     @app.get("/api/health", response_model=HealthResponse, tags=["System"])
     def health():
-        return {"status": "ok", "service": "nekostrike-api", "version": "0.3.0",
+        return {"status": "ok", "service": "nekostrike-api", "version": "0.4.0",
                 "environment": "local", "timestamp": datetime.now(timezone.utc),
-                "lab": {"status": "ready", "checks": ["bola", "data_exposure"]}, "ai": {"status": "not_implemented"}}
+                "lab": {"status": "ready", "checks": ["bola", "data_exposure", "security_misconfiguration"]}, "ai": {"status": "not_implemented"}}
 
     @app.get("/api/workspace", tags=["Evidence"])
     def workspace():
@@ -93,7 +94,8 @@ def create_app(db_path: Path | None = None) -> FastAPI:
     @app.post("/api/runs", status_code=201, dependencies=[Depends(require_workspace)], tags=["Lab"])
     async def run_check(body: RunInput):
         try:
-            checker = check_bola if body.check_type == "bola" else check_exposure
+            checker = {"bola": check_bola, "data_exposure": check_exposure,
+                       "security_misconfiguration": check_misconfiguration}[body.check_type]
             verdict, evidence = await checker(body.mode)
         except RuntimeError as exc:
             raise HTTPException(502, str(exc)) from exc
@@ -115,6 +117,15 @@ def create_app(db_path: Path | None = None) -> FastAPI:
                     "impact": "Bob recebeu email e internal_note fictícios ao consultar o perfil público de Alice. Esses campos não pertencem à representação autorizada.",
                     "remediation": "Selecione no backend somente id e display_name para o perfil público. Valide o esquema de saída e mantenha testes que rejeitem campos privados. Ocultar campos apenas na interface não corrige a resposta da API.",
                     "severity_reason": "Média no cenário didático: exposição de contato e nota interna fictícios a outro usuário, sem evidência de escrita ou tomada de conta. Sem pontuação CVSS.",
+                })
+            if body.check_type == "security_misconfiguration":
+                finding.update({
+                    "title": "Configuração insegura: detalhes internos na resposta de erro", "severity": "medium",
+                    "category": "API8:2023",
+                    "reference": "https://owasp.org/API-Security/editions/2023/en/0xa8-security-misconfiguration/",
+                    "impact": "Um cliente anônimo recebeu nome de exceção e caminho de arquivo inteiramente fictícios no campo debug. O cenário demonstra divulgação de detalhes internos.",
+                    "remediation": "Retorne um erro genérico ao cliente e valide o esquema da resposta. Restrinja diagnósticos detalhados a logs internos protegidos, sem segredos. Remover detalhes não resolve a falha simulada que originou o erro.",
+                    "severity_reason": "Média no cenário didático: divulgação de detalhes internos fictícios, sem evidência de acesso a arquivos, credenciais ou execução de comandos. Sem pontuação CVSS.",
                 })
         store.save(run, finding)
         return run

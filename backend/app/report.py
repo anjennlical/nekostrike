@@ -17,6 +17,9 @@ def markdown_report(snapshot: dict) -> str:
              f"Referência: [OWASP API1:2023 - BOLA]({OWASP})", "",
              "Média (qualitativa, restrita ao cenário didático): contato e nota interna expostos em um perfil público. Sem CVSS ou evidência de tomada de conta.",
              "Referência: [OWASP API3:2023 - propriedades do objeto](https://owasp.org/API-Security/editions/2023/en/0xa3-broken-object-property-level-authorization/)",
+             "",
+             "Média (configuração insegura, cenário didático): detalhes internos fictícios em resposta de erro. Sem evidência de acesso a arquivos ou execução de comandos; sem CVSS. O HTTP 500 permanece no cenário corrigido, com resposta genérica.",
+             "Referência: [OWASP API8:2023 - configuração insegura](https://owasp.org/API-Security/editions/2023/en/0xa8-security-misconfiguration/)",
              "", "## Execuções", ""]
     if not runs:
         lines.append("Nenhuma execução registrada. Ausência de achados não demonstra segurança.")
@@ -33,6 +36,6 @@ def markdown_report(snapshot: dict) -> str:
                       f"Severidade: {finding['severity']} | Revisão: {finding['review_status']}", "",
                       finding["impact"], "", f"Critério: {finding['severity_reason']}",
                       f"Referência: {finding['reference']}", f"Recomendação: {finding['remediation']}", ""])
-    lines.extend(["## Limitações", "", "Testes de leitura de objeto e propriedades de perfil público. Não cobre escrita, exclusão, "
+    lines.extend(["## Limitações", "", "Testes de leitura de objeto, propriedades de perfil público e detalhes de erro. Não cobre todas as configurações, escrita, exclusão, "
                   "outras funções, autenticação real ou todos os riscos OWASP. Revisado não significa corrigido."])
     return "\n".join(lines) + "\n"

@@ -127,9 +127,11 @@ export default function Overview({
                   <span className={`subtle-tag verdict-${run.verdict}`}>
                     {run.verdict === 'vulnerable'
                       ? 'Achado confirmado'
-                      : run.check_type === 'data_exposure'
-                        ? 'Campos limitados'
-                        : 'Acesso bloqueado'}
+                      : run.check_type === 'security_misconfiguration'
+                        ? 'Erro sem detalhes'
+                        : run.check_type === 'data_exposure'
+                          ? 'Campos limitados'
+                          : 'Acesso bloqueado'}
                   </span>
                 </div>
               ))}
@@ -165,7 +167,7 @@ export default function Overview({
             </div>
           )}
           <div className="panel-foot">
-            <FileSearch size={14} /> Testes de objetos e campos de resposta. Dados fictícios,
+            <FileSearch size={14} /> Testes de objetos, campos e respostas de erro. Dados fictícios,
             evidências reais.
           </div>
         </Panel>

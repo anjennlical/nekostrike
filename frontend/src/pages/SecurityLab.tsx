@@ -22,6 +22,10 @@ export default function SecurityLab({
   const [checkType, setCheckType] = useState<CheckType>('bola')
   const selectedCheck = labChecks[checkType]
   const exposureReady = connection.data?.lab.checks?.includes('data_exposure') ?? false
+  const configurationReady =
+    connection.data?.lab.checks?.includes('security_misconfiguration') ?? false
+  const selectedReady =
+    checkType === 'bola' || (checkType === 'data_exposure' ? exposureReady : configurationReady)
   const [runFeedback, setRunFeedback] = useState<{
     mode: 'vulnerable' | 'fixed'
     status: 'running' | 'success' | 'error'
@@ -101,11 +105,11 @@ export default function SecurityLab({
           <span className="eyebrow">LABORATÓRIO CONTROLADO</span>
           <h2>Aprender. Testar. Entender.</h2>
           <p>
-            Investigue pedidos e perfis de usuários fictícios. Escolha uma verificação e compare o
-            cenário vulnerável com a versão corrigida.
+            Investigue pedidos, perfis e respostas de erro fictícios. Escolha uma verificação e
+            compare o cenário vulnerável com a versão corrigida.
           </p>
         </div>
-        <span className="subtle-tag">BOLA & exposição de dados</span>
+        <span className="subtle-tag">3 verificações locais</span>
       </section>
       <div className="lab-check-picker">
         <label className="filter-label">
@@ -120,14 +124,17 @@ export default function SecurityLab({
           >
             <option value="bola">BOLA · acesso ao objeto</option>
             <option value="data_exposure" disabled={!exposureReady}>
-              Exposição de dados · campos da resposta
+              Exposição de dados
+            </option>
+            <option value="security_misconfiguration" disabled={!configurationReady}>
+              Configuração insegura
             </option>
           </select>
         </label>
-        {!exposureReady && (
+        {(!exposureReady || !configurationReady) && (
           <p>
-            Exposição de dados requer o backend 0.3 conectado. Reinicie o projeto e verifique a
-            conexão para habilitar.
+            Para habilitar as três verificações, reinicie o projeto com o backend 0.4 e clique em
+            Verificar conexão. Opções indisponíveis não foram anunciadas pelo backend conectado.
           </p>
         )}
       </div>
@@ -150,7 +157,7 @@ export default function SecurityLab({
             </p>
             <button
               className="button primary"
-              disabled={!!workspace.busy || (checkType === 'data_exposure' && !exposureReady)}
+              disabled={!!workspace.busy || !selectedReady}
               onClick={() => void execute('vulnerable')}
             >
               <FlaskConical size={16} />
@@ -169,7 +176,7 @@ export default function SecurityLab({
             </p>
             <button
               className="button secondary"
-              disabled={!!workspace.busy || (checkType === 'data_exposure' && !exposureReady)}
+              disabled={!!workspace.busy || !selectedReady}
               onClick={() => void execute('fixed')}
             >
               <ShieldCheck size={16} />
@@ -261,13 +268,14 @@ export default function SecurityLab({
           <div className="local-notice">
             <CircleHelp size={17} />
             <p>
-              O laboratório vulnerável não possui porta própria e não é exposto pelo backend. BOLA e
-              exposição de dados estão implementados; configuração insegura ainda é planejada.
+              O laboratório vulnerável não possui porta própria e não é exposto pelo backend. BOLA,
+              exposição de dados e configuração de erros estão implementados. Isso não cobre todos
+              os riscos de uma API.
             </p>
           </div>
         </Panel>
       </div>
-      <Panel title="Um laboratório em evolução" eyebrow="IMPLEMENTADO & PLANEJADO">
+      <Panel title="Três caminhos para aprender" eyebrow="VERIFICAÇÕES IMPLEMENTADAS">
         <div className="test-grid">
           {[
             {
@@ -285,8 +293,8 @@ export default function SecurityLab({
             {
               n: '03',
               title: 'Configurações inseguras',
-              text: 'Examinar configurações propositalmente inseguras dentro do laboratório.',
-              tag: 'Configuração',
+              text: 'Comparar detalhes de diagnóstico fictícios com uma resposta de erro genérica.',
+              tag: 'Configuração · implementado',
             },
           ].map((test) => (
             <article className="planned-test" key={test.n}>
@@ -294,11 +302,7 @@ export default function SecurityLab({
               <h3>{test.title}</h3>
               <p>{test.text}</p>
               <span className="subtle-tag">{test.tag}</span>
-              <small>
-                {test.n !== '03'
-                  ? 'Disponível no seletor de verificação'
-                  : 'Planejado · execução indisponível'}
-              </small>
+              <small>Disponível no seletor de verificação</small>
             </article>
           ))}
         </div>

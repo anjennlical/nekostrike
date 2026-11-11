@@ -123,9 +123,11 @@ export default function Findings({ workspace }: { workspace: WorkspaceState }) {
                       <a
                         className="text-link"
                         href={
-                          run.check_type === 'data_exposure'
-                            ? 'https://owasp.org/API-Security/editions/2023/en/0xa3-broken-object-property-level-authorization/'
-                            : 'https://owasp.org/API-Security/editions/2023/en/0xa1-broken-object-level-authorization/'
+                          run.check_type === 'security_misconfiguration'
+                            ? 'https://owasp.org/API-Security/editions/2023/en/0xa8-security-misconfiguration/'
+                            : run.check_type === 'data_exposure'
+                              ? 'https://owasp.org/API-Security/editions/2023/en/0xa3-broken-object-property-level-authorization/'
+                              : 'https://owasp.org/API-Security/editions/2023/en/0xa1-broken-object-level-authorization/'
                         }
                         target="_blank"
                         rel="noreferrer"

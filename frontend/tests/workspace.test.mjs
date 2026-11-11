@@ -92,3 +92,33 @@ test('identifies legacy BOLA and validates exposure scenarios and severity', () 
     parseWorkspace({ runs: [run], findings: [{ ...finding, category: 'API3:2023' }] }),
   )
 })
+
+test('accepts error evidence and rejects mismatched check classification', () => {
+  const config = {
+    ...run,
+    check_type: 'security_misconfiguration',
+    evidence: run.evidence.map((e, i) => ({
+      ...e,
+      scenario: ['baseline', 'error_response', 'negative_control'][i],
+      status: i ? 500 : 200,
+      expected_status: i ? 500 : 200,
+      body: i ? { detail: 'Erro simulado' } : { status: 'ok' },
+    })),
+  }
+  const misconfigured = { ...finding, severity: 'medium', category: 'API8:2023' }
+  assert.equal(
+    parseWorkspace({ runs: [config], findings: [misconfigured] }).runs[0].check_type,
+    'security_misconfiguration',
+  )
+  assert.equal(parseRun({ ...config, mode: 'fixed', verdict: 'protected' }).evidence[1].status, 500)
+  for (const changed of [
+    { severity: 'high' },
+    { category: 'API3:2023' },
+    { category: 'API1:2023' },
+  ]) {
+    assert.throws(() =>
+      parseWorkspace({ runs: [config], findings: [{ ...misconfigured, ...changed }] }),
+    )
+  }
+  assert.throws(() => parseRun({ ...config, evidence: run.evidence }))
+})
