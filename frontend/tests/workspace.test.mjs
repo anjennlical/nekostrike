@@ -65,3 +65,30 @@ test('surfaces persistence and request errors', async (t) => {
   t.mock.method(globalThis, 'fetch', async () => new Response('{}', { status: 503 }))
   await assert.rejects(workspaceRequest('workspace'), /503/)
 })
+
+test('identifies legacy BOLA and validates exposure scenarios and severity', () => {
+  assert.equal(parseRun(run).check_type, 'bola')
+  const exposure = {
+    ...run,
+    id: 'exposure',
+    check_type: 'data_exposure',
+    evidence: run.evidence.map((e, i) => ({
+      ...e,
+      scenario: ['baseline', 'profile_response', 'negative_control'][i],
+    })),
+  }
+  const exposed = { ...finding, run_id: 'exposure', severity: 'medium', category: 'API3:2023' }
+  assert.equal(
+    parseWorkspace({ runs: [run, exposure], findings: [finding, exposed] }).findings.length,
+    2,
+  )
+  assert.throws(() => parseRun({ ...run, check_type: 'unknown' }))
+  assert.throws(() => parseRun({ ...run, check_type: null }))
+  assert.throws(() => parseRun({ ...run, check_type: 'data_exposure' }))
+  assert.throws(() =>
+    parseWorkspace({ runs: [exposure], findings: [{ ...exposed, severity: 'high' }] }),
+  )
+  assert.throws(() =>
+    parseWorkspace({ runs: [run], findings: [{ ...finding, category: 'API3:2023' }] }),
+  )
+})

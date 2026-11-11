@@ -15,6 +15,14 @@ const health = {
 test('accepts the health contract', () => {
   assert.deepEqual(parseHealth(health), health)
 })
+
+test('validates advertised lab checks without inventing new capabilities', () => {
+  const updated = { ...health, lab: { status: 'ready', checks: ['bola', 'data_exposure'] } }
+  assert.deepEqual(parseHealth(updated), updated)
+  for (const checks of ['data_exposure', null, ['unknown']]) {
+    assert.throws(() => parseHealth({ ...health, lab: { status: 'ready', checks } }))
+  }
+})
 test('rejects malformed or unrelated responses', () => {
   for (const value of [
     null,

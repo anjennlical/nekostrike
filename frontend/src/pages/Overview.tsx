@@ -20,6 +20,7 @@ import type { ReactNode } from 'react'
 import Panel from '../components/Panel'
 import MetricCard from '../components/MetricCard'
 import type { WorkspaceState } from '../useWorkspace'
+import { labChecks } from '../lab-checks'
 
 export default function Overview({
   connection,
@@ -118,12 +119,17 @@ export default function Overview({
                   </span>
                   <div>
                     <strong>
-                      BOLA · {run.mode === 'fixed' ? 'cenário corrigido' : 'cenário vulnerável'}
+                      {labChecks[run.check_type].label} ·{' '}
+                      {run.mode === 'fixed' ? 'cenário corrigido' : 'cenário vulnerável'}
                     </strong>
                     <small>{new Date(run.created_at).toLocaleString('pt-BR')}</small>
                   </div>
                   <span className={`subtle-tag verdict-${run.verdict}`}>
-                    {run.verdict === 'vulnerable' ? 'Achado confirmado' : 'Acesso bloqueado'}
+                    {run.verdict === 'vulnerable'
+                      ? 'Achado confirmado'
+                      : run.check_type === 'data_exposure'
+                        ? 'Campos limitados'
+                        : 'Acesso bloqueado'}
                   </span>
                 </div>
               ))}
@@ -148,7 +154,7 @@ export default function Overview({
               </h3>
               <p>
                 {workspace.data
-                  ? 'Nenhuma execução registrada. Execute o cenário BOLA no laboratório para começar.'
+                  ? 'Nenhuma execução registrada. Escolha uma verificação no laboratório para começar.'
                   : workspace.loading
                     ? 'Carregando seu histórico…'
                     : 'Histórico indisponível. Atualize os dados para tentar novamente.'}
@@ -159,8 +165,8 @@ export default function Overview({
             </div>
           )}
           <div className="panel-foot">
-            <FileSearch size={14} /> Um teste de leitura de objetos. Dados fictícios, evidências
-            reais.
+            <FileSearch size={14} /> Testes de objetos e campos de resposta. Dados fictícios,
+            evidências reais.
           </div>
         </Panel>
         <Panel title="Um ambiente, sob controle" eyebrow="STATUS DO WORKSPACE">
@@ -189,7 +195,9 @@ export default function Overview({
               <small>Testes em ambiente isolado</small>
             </div>
             <span className="service-state">
-              {connection.data?.lab.status === 'ready' ? 'BOLA disponível' : 'Não verificado'}
+              {connection.data?.lab.status === 'ready'
+                ? `${connection.data.lab.checks?.length ?? 1} verificações`
+                : 'Não verificado'}
             </span>
           </div>
           <div className="service-row">

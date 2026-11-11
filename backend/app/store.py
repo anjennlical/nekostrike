@@ -25,6 +25,12 @@ class Store:
                 details TEXT NOT NULL
             );
             """)
+            if "check_type" not in {row[1] for row in connection.execute("PRAGMA table_info(runs)")}:
+                connection.execute("BEGIN IMMEDIATE")
+                # Recheck after acquiring the lock: another reader may have migrated.
+                if "check_type" not in {row[1] for row in connection.execute("PRAGMA table_info(runs)")}:
+                    connection.execute("ALTER TABLE runs ADD COLUMN check_type TEXT NOT NULL DEFAULT 'bola'")
+                connection.commit()
         except sqlite3.Error:
             connection.close()
             raise
@@ -34,9 +40,9 @@ class Store:
         connection = self.connect()
         try:
             with connection:
-                connection.execute("INSERT INTO runs VALUES (?, ?, ?, ?, ?)", (
+                connection.execute("INSERT INTO runs (id, created_at, mode, verdict, evidence, check_type) VALUES (?, ?, ?, ?, ?, ?)", (
                     run["id"], run["created_at"], run["mode"], run["verdict"],
-                    json.dumps(run["evidence"], ensure_ascii=False)))
+                    json.dumps(run["evidence"], ensure_ascii=False), run.get("check_type", "bola")))
                 if finding:
                     connection.execute("INSERT INTO findings VALUES (?, ?, ?, ?)", (
                         finding["id"], run["id"], finding["review_status"],

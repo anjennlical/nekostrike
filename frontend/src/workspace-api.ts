@@ -1,5 +1,6 @@
+export type CheckType = 'bola' | 'data_exposure'
 export type Evidence = {
-  scenario: 'baseline' | 'cross_user' | 'negative_control'
+  scenario: 'baseline' | 'cross_user' | 'profile_response' | 'negative_control'
   method: 'GET'
   path: string
   actor: string
@@ -9,6 +10,7 @@ export type Evidence = {
   body: Record<string, unknown>
 }
 export type Run = {
+  check_type: CheckType
   id: string
   created_at: string
   mode: 'vulnerable' | 'fixed'
@@ -19,7 +21,7 @@ export type Finding = {
   id: string
   run_id: string
   title: string
-  severity: 'high'
+  severity: 'high' | 'medium'
   review_status: 'pending' | 'reviewed'
   category: string
   reference: string
@@ -36,8 +38,10 @@ function hasStrings(value: Record<string, unknown>, keys: string[]) {
   return keys.every((key) => typeof value[key] === 'string' && value[key] !== '')
 }
 export function parseRun(value: unknown): Run {
+  const check = record(value) ? (value.check_type === undefined ? 'bola' : value.check_type) : null
   if (
     !record(value) ||
+    !['bola', 'data_exposure'].includes(check as string) ||
     !hasStrings(value, ['id', 'created_at']) ||
     !Number.isFinite(Date.parse(value.created_at as string)) ||
     !['vulnerable', 'fixed'].includes(value.mode as string) ||
@@ -47,7 +51,12 @@ export function parseRun(value: unknown): Run {
     !value.evidence.every(
       (e, index) =>
         record(e) &&
-        e.scenario === ['baseline', 'cross_user', 'negative_control'][index] &&
+        e.scenario ===
+          [
+            'baseline',
+            check === 'data_exposure' ? 'profile_response' : 'cross_user',
+            'negative_control',
+          ][index] &&
         e.method === 'GET' &&
         hasStrings(e, ['path', 'actor']) &&
         ['vulnerable', 'fixed'].includes(e.lab_mode as string) &&
@@ -60,7 +69,7 @@ export function parseRun(value: unknown): Run {
   ) {
     throw new Error('Resposta de execução inválida.')
   }
-  return value as unknown as Run
+  return { ...value, check_type: check } as unknown as Run
 }
 export function parseWorkspace(value: unknown): Workspace {
   if (!record(value) || !Array.isArray(value.runs) || !Array.isArray(value.findings)) {
@@ -82,9 +91,15 @@ export function parseWorkspace(value: unknown): Workspace {
           'remediation',
           'severity_reason',
         ]) &&
-        f.severity === 'high' &&
+        ['high', 'medium'].includes(f.severity as string) &&
         ['pending', 'reviewed'].includes(f.review_status as string) &&
-        runs.some((run) => run.id === f.run_id && run.verdict === 'vulnerable'),
+        runs.some(
+          (run) =>
+            run.id === f.run_id &&
+            run.verdict === 'vulnerable' &&
+            f.category === (run.check_type === 'data_exposure' ? 'API3:2023' : 'API1:2023') &&
+            f.severity === (run.check_type === 'data_exposure' ? 'medium' : 'high'),
+        ),
     )
   ) {
     throw new Error('Evidências do workspace inválidas.')

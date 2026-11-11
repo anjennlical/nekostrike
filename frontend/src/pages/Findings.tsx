@@ -98,7 +98,9 @@ export default function Findings({ workspace }: { workspace: WorkspaceState }) {
               return (
                 <article className="finding-record" key={finding.id}>
                   <div className="finding-record-head">
-                    <span className="severity-high">Alta · {finding.category}</span>
+                    <span className={`severity-${finding.severity}`}>
+                      {finding.severity === 'high' ? 'Alta' : 'Média'} · {finding.category}
+                    </span>
                     <span className={`subtle-tag review-${finding.review_status}`}>
                       {finding.review_status === 'reviewed' ? 'Revisado' : 'Revisão pendente'}
                     </span>
@@ -114,17 +116,21 @@ export default function Findings({ workspace }: { workspace: WorkspaceState }) {
                     <p>
                       <strong>Critério de severidade:</strong> {finding.severity_reason}
                     </p>
-                    <EvidenceView evidence={run.evidence} />
+                    <EvidenceView evidence={run.evidence} checkType={run.check_type} />
                     <div className="remediation">
                       <h4>Como corrigir</h4>
                       <p>{finding.remediation}</p>
                       <a
                         className="text-link"
-                        href="https://owasp.org/API-Security/editions/2023/en/0xa1-broken-object-level-authorization/"
+                        href={
+                          run.check_type === 'data_exposure'
+                            ? 'https://owasp.org/API-Security/editions/2023/en/0xa3-broken-object-property-level-authorization/'
+                            : 'https://owasp.org/API-Security/editions/2023/en/0xa1-broken-object-level-authorization/'
+                        }
                         target="_blank"
                         rel="noreferrer"
                       >
-                        Referência OWASP API1:2023 <ArrowRight size={14} />
+                        Referência OWASP {finding.category} <ArrowRight size={14} />
                       </a>
                     </div>
                     <p className="record-meta">

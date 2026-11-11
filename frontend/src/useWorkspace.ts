@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { parseRun, parseWorkspace, workspaceRequest } from './workspace-api'
-import type { Run, Workspace } from './workspace-api'
+import type { CheckType, Run, Workspace } from './workspace-api'
 
 export function useWorkspace() {
   const [data, setData] = useState<Workspace | null>(null)
@@ -35,7 +35,7 @@ export function useWorkspace() {
       generation.current++
     }
   }, [refresh])
-  async function execute(mode: 'vulnerable' | 'fixed') {
+  async function execute(mode: 'vulnerable' | 'fixed', check_type: CheckType = 'bola') {
     if (lock.current) return null
     lock.current = true
     setBusy('run')
@@ -43,7 +43,12 @@ export function useWorkspace() {
     setNotice(null)
     setLastRun(null)
     try {
-      const run = parseRun(await workspaceRequest('runs', 'POST', { mode }))
+      const run = parseRun(
+        await workspaceRequest('runs', 'POST', {
+          mode,
+          ...(check_type === 'bola' ? {} : { check_type }),
+        }),
+      )
       setLastRun(run)
       setNotice('Execução concluída e salva no histórico local.')
       await refresh()

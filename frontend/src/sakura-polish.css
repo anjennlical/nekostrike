@@ -1,4 +1,39 @@
 /* Shared shell and approved page refinements. Original Sakura illustrations are preserved. */
+.lab-check-picker {
+  margin: 0 0 24px;
+  padding: 18px 22px;
+  border: 1px solid #ddbdd5;
+  border-radius: 16px;
+  background: #fff5f9;
+}
+.lab-check-picker .filter-label {
+  font-size: 14px;
+}
+.lab-check-picker select {
+  width: 100%;
+  max-width: 520px;
+}
+.lab-check-picker p,
+.evidence-expectation {
+  color: #684761;
+  font-size: 13px;
+  line-height: 1.7;
+}
+.evidence-expectation code {
+  overflow-wrap: anywhere;
+}
+.severity-medium {
+  color: #654414;
+  background: #fff0d4;
+  border: 1px solid #d6b578;
+  border-radius: 8px;
+  font-size: 12px;
+  font-weight: 800;
+  padding: 6px 10px;
+}
+.workspace-page .evidence-item summary .subtle-tag {
+  white-space: normal;
+}
 .sakura-theme {
   --surface-reading: #fff5f9;
   --surface-soft: #f4e5f2;

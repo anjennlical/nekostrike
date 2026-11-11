@@ -26,7 +26,8 @@ async def test_health_contract_and_honest_capabilities(client):
     data = response.json()
     assert response.status_code == 200
     assert data["status"] == "ok" and data["service"] == "nekostrike-api"
-    assert data["environment"] == "local" and data["version"] == "0.2.0"
+    assert data["environment"] == "local" and data["version"] == "0.3.0"
+    assert data["lab"]["checks"] == ["bola", "data_exposure"]
     assert data["lab"]["status"] == "ready"
     assert data["ai"]["status"] == "not_implemented"
     assert abs((datetime.now(timezone.utc) - datetime.fromisoformat(data["timestamp"])).total_seconds()) < 10

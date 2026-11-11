@@ -5,6 +5,8 @@ import { useEffect, useRef, useState, type ReactNode } from 'react'
 import Panel from '../components/Panel'
 import EvidenceView from '../components/EvidenceView'
 import type { WorkspaceState } from '../useWorkspace'
+import type { CheckType } from '../workspace-api'
+import { labChecks } from '../lab-checks'
 
 export default function SecurityLab({
   connection,
@@ -17,6 +19,9 @@ export default function SecurityLab({
   checkedAt: string | null
   workspace: WorkspaceState
 }) {
+  const [checkType, setCheckType] = useState<CheckType>('bola')
+  const selectedCheck = labChecks[checkType]
+  const exposureReady = connection.data?.lab.checks?.includes('data_exposure') ?? false
   const [runFeedback, setRunFeedback] = useState<{
     mode: 'vulnerable' | 'fixed'
     status: 'running' | 'success' | 'error'
@@ -24,7 +29,11 @@ export default function SecurityLab({
   const resultPanel = useRef<HTMLDivElement>(null)
   const submitting = useRef(false)
   const displayedRun =
-    workspace.busy === 'run' ? null : (workspace.lastRun ?? workspace.data?.runs[0])
+    workspace.busy === 'run'
+      ? null
+      : workspace.lastRun?.check_type === checkType
+        ? workspace.lastRun
+        : workspace.data?.runs.find((run) => run.check_type === checkType)
 
   function showResult() {
     resultPanel.current?.focus({ preventScroll: true })
@@ -40,7 +49,7 @@ export default function SecurityLab({
     submitting.current = true
     setRunFeedback({ mode, status: 'running' })
     try {
-      const run = await workspace.execute(mode)
+      const run = await workspace.execute(mode, checkType)
       setRunFeedback({ mode, status: run ? 'success' : 'error' })
     } finally {
       submitting.current = false
@@ -92,41 +101,56 @@ export default function SecurityLab({
           <span className="eyebrow">LABORATÓRIO CONTROLADO</span>
           <h2>Aprender. Testar. Entender.</h2>
           <p>
-            Investigue o acesso a pedidos de usuários fictícios. Compare um cenário vulnerável com a
-            versão corrigida e acompanhe as respostas reais de cada verificação.
+            Investigue pedidos e perfis de usuários fictícios. Escolha uma verificação e compare o
+            cenário vulnerável com a versão corrigida.
           </p>
         </div>
-        <span className="subtle-tag">BOLA · implementado</span>
+        <span className="subtle-tag">BOLA & exposição de dados</span>
       </section>
-      <Panel title="Um pedido. Dois usuários. Uma fronteira." eyebrow="01 / AUTORIZAÇÃO DE OBJETOS">
-        <p className="panel-description">
-          Alice pode ler seu próprio pedido. Mas será que consegue ler o pedido de Bob? O teste
-          compara o acesso entre usuários e executa um controle corrigido. Tudo acontece dentro do
-          processo, sem conexões a alvos externos.
-        </p>
+      <div className="lab-check-picker">
+        <label className="filter-label">
+          Verificação do laboratório
+          <select
+            value={checkType}
+            disabled={!!workspace.busy}
+            onChange={(event) => {
+              setCheckType(event.target.value as CheckType)
+              setRunFeedback(null)
+            }}
+          >
+            <option value="bola">BOLA · acesso ao objeto</option>
+            <option value="data_exposure" disabled={!exposureReady}>
+              Exposição de dados · campos da resposta
+            </option>
+          </select>
+        </label>
+        {!exposureReady && (
+          <p>
+            Exposição de dados requer o backend 0.3 conectado. Reinicie o projeto e verifique a
+            conexão para habilitar.
+          </p>
+        )}
+      </div>
+      <Panel title={selectedCheck.title} eyebrow={selectedCheck.eyebrow}>
+        <p className="panel-description">{selectedCheck.description}</p>
         <p className="learning-note">
           <CircleHelp size={18} aria-hidden="true" />
           <span>
-            <strong>O que é BOLA?</strong> É uma falha de autorização: estar conectado não deveria
-            permitir ler o pedido de outra pessoa. Aqui, HTTP 200 significa leitura permitida; HTTP
-            403 significa acesso negado.
+            <strong>Entenda o teste: </strong>
+            {selectedCheck.lesson}
           </span>
         </p>
         <div className="lab-scenarios">
           <article>
             <span className="scenario-number">A / INVESTIGAR</span>
             <h3>Cenário vulnerável</h3>
-            <p>
-              O laboratório omite a autorização por objeto. A leitura indevida deve gerar um achado
-              com evidência.
-            </p>
+            <p>{selectedCheck.vulnerable}</p>
             <p className="scenario-outcome">
-              <strong>Resultado esperado:</strong> Alice lê o pedido de Bob e um achado é
-              registrado.
+              <strong>Resultado esperado:</strong> {selectedCheck.vulnerableExpected}
             </p>
             <button
               className="button primary"
-              disabled={!!workspace.busy}
+              disabled={!!workspace.busy || (checkType === 'data_exposure' && !exposureReady)}
               onClick={() => void execute('vulnerable')}
             >
               <FlaskConical size={16} />
@@ -139,16 +163,13 @@ export default function SecurityLab({
           <article>
             <span className="scenario-number">B / COMPARAR</span>
             <h3>Cenário corrigido</h3>
-            <p>
-              A autorização verifica o proprietário. O pedido de Bob deve retornar HTTP 403 e não
-              gerar um achado.
-            </p>
+            <p>{selectedCheck.fixed}</p>
             <p className="scenario-outcome">
-              <strong>Resultado esperado:</strong> a leitura é bloqueada, sem novo achado.
+              <strong>Resultado esperado:</strong> {selectedCheck.fixedExpected}
             </p>
             <button
               className="button secondary"
-              disabled={!!workspace.busy}
+              disabled={!!workspace.busy || (checkType === 'data_exposure' && !exposureReady)}
               onClick={() => void execute('fixed')}
             >
               <ShieldCheck size={16} />
@@ -168,14 +189,14 @@ export default function SecurityLab({
             aria-labelledby="run-result-title"
           >
             <span className="eyebrow">
-              {workspace.lastRun
+              {workspace.lastRun?.id === displayedRun.id
                 ? 'ÚLTIMA EXECUÇÃO NESTA SESSÃO'
                 : 'ÚLTIMA EXECUÇÃO SALVA NO HISTÓRICO'}
             </span>
             <h3 id="run-result-title">
               {displayedRun.verdict === 'vulnerable'
-                ? 'BOLA demonstrada: acesso indevido confirmado.'
-                : 'Acesso entre usuários bloqueado neste teste.'}
+                ? selectedCheck.vulnerableResult
+                : selectedCheck.fixedResult}
             </h3>
             <p>
               <strong>
@@ -184,7 +205,7 @@ export default function SecurityLab({
               · {new Date(displayedRun.created_at).toLocaleString('pt-BR')} · ID{' '}
               {displayedRun.id.slice(0, 8)}. Este resultado se limita ao cenário executado.
             </p>
-            <EvidenceView evidence={displayedRun.evidence} />
+            <EvidenceView evidence={displayedRun.evidence} checkType={displayedRun.check_type} />
             <a className="text-link" href="#findings">
               Consultar achados e exportar relatório <FileSearch size={16} />
             </a>
@@ -240,8 +261,8 @@ export default function SecurityLab({
           <div className="local-notice">
             <CircleHelp size={17} />
             <p>
-              O laboratório vulnerável não possui porta própria e não é exposto pelo backend.
-              Somente o cenário BOLA está implementado.
+              O laboratório vulnerável não possui porta própria e não é exposto pelo backend. BOLA e
+              exposição de dados estão implementados; configuração insegura ainda é planejada.
             </p>
           </div>
         </Panel>
@@ -259,7 +280,7 @@ export default function SecurityLab({
               n: '02',
               title: 'Exposição de dados',
               text: 'Identificar campos sensíveis que não deveriam estar presentes na resposta da API.',
-              tag: 'Dados sensíveis',
+              tag: 'Exposição · implementado',
             },
             {
               n: '03',
@@ -274,8 +295,8 @@ export default function SecurityLab({
               <p>{test.text}</p>
               <span className="subtle-tag">{test.tag}</span>
               <small>
-                {test.n === '01'
-                  ? 'Disponível nos cenários acima'
+                {test.n !== '03'
+                  ? 'Disponível no seletor de verificação'
                   : 'Planejado · execução indisponível'}
               </small>
             </article>

@@ -182,7 +182,7 @@ export default function App() {
             </div>
           </div>
           <span className="version">
-            NekoStrike <span>v0.2 · Lab & evidências</span>
+            NekoStrike <span>v0.3 · Lab & evidências</span>
           </span>
         </div>
       </aside>

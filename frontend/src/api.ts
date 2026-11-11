@@ -4,7 +4,7 @@ export type Health = {
   version: string
   environment: 'local'
   timestamp: string
-  lab: { status: 'ready' }
+  lab: { status: 'ready'; checks?: ('bola' | 'data_exposure')[] }
   ai: { status: 'not_implemented' }
 }
 
@@ -19,6 +19,9 @@ export function parseHealth(value: unknown): Health {
     typeof data.timestamp !== 'string' ||
     !Number.isFinite(Date.parse(data.timestamp)) ||
     data.lab?.status !== 'ready' ||
+    (data.lab.checks !== undefined &&
+      (!Array.isArray(data.lab.checks) ||
+        !data.lab.checks.every((check) => ['bola', 'data_exposure'].includes(check)))) ||
     data.ai?.status !== 'not_implemented'
   )
     throw new Error('A resposta não corresponde ao contrato do NekoStrike.')
