@@ -1,7 +1,7 @@
 import { CircleHelp, FileSearch, FlaskConical, Heart, LockKeyhole, ShieldCheck } from 'lucide-react'
 import StatusBadge from '../components/StatusBadge'
 import type { Connection } from '../useHealth'
-import type { ReactNode } from 'react'
+import { useEffect, useRef, useState, type ReactNode } from 'react'
 import Panel from '../components/Panel'
 import EvidenceView from '../components/EvidenceView'
 import type { WorkspaceState } from '../useWorkspace'
@@ -17,6 +17,71 @@ export default function SecurityLab({
   checkedAt: string | null
   workspace: WorkspaceState
 }) {
+  const [runFeedback, setRunFeedback] = useState<{
+    mode: 'vulnerable' | 'fixed'
+    status: 'running' | 'success' | 'error'
+  } | null>(null)
+  const resultPanel = useRef<HTMLDivElement>(null)
+  const submitting = useRef(false)
+  const displayedRun =
+    workspace.busy === 'run' ? null : (workspace.lastRun ?? workspace.data?.runs[0])
+
+  function showResult() {
+    resultPanel.current?.focus({ preventScroll: true })
+    resultPanel.current?.scrollIntoView({ block: 'start', behavior: 'instant' })
+  }
+
+  useEffect(() => {
+    if (runFeedback?.status === 'success') showResult()
+  }, [runFeedback])
+
+  async function execute(mode: 'vulnerable' | 'fixed') {
+    if (submitting.current || workspace.busy) return
+    submitting.current = true
+    setRunFeedback({ mode, status: 'running' })
+    try {
+      const run = await workspace.execute(mode)
+      setRunFeedback({ mode, status: run ? 'success' : 'error' })
+    } finally {
+      submitting.current = false
+    }
+  }
+
+  function feedback(mode: 'vulnerable' | 'fixed') {
+    if (runFeedback?.mode !== mode) return null
+    if (runFeedback.status === 'error')
+      return (
+        <div className="scenario-feedback is-error" role="alert">
+          <strong>Não foi possível confirmar a execução.</strong>
+          <p>
+            Confira o histórico antes de repetir: a resposta pode ter sido interrompida após o
+            salvamento.
+          </p>
+          <button
+            className="text-link"
+            disabled={workspace.loading || !!workspace.busy}
+            onClick={() => void workspace.refresh()}
+          >
+            Atualizar histórico
+          </button>
+        </div>
+      )
+    return (
+      <div className="scenario-feedback" role="status">
+        {runFeedback.status === 'running' ? (
+          'Executando e salvando… Aguarde a confirmação.'
+        ) : (
+          <>
+            <strong>Execução concluída e salva.</strong>
+            <button className="text-link" onClick={showResult}>
+              Ver resultado desta execução
+            </button>
+          </>
+        )}
+      </div>
+    )
+  }
+
   return (
     <div className="workspace-page lab-page">
       <section className="section-banner lab-banner">
@@ -62,11 +127,14 @@ export default function SecurityLab({
             <button
               className="button primary"
               disabled={!!workspace.busy}
-              onClick={() => void workspace.execute('vulnerable')}
+              onClick={() => void execute('vulnerable')}
             >
               <FlaskConical size={16} />
-              Executar cenário vulnerável
+              {runFeedback?.mode === 'vulnerable' && runFeedback.status === 'running'
+                ? 'Executando cenário vulnerável…'
+                : 'Executar cenário vulnerável'}
             </button>
+            {feedback('vulnerable')}
           </article>
           <article>
             <span className="scenario-number">B / COMPARAR</span>
@@ -81,29 +149,42 @@ export default function SecurityLab({
             <button
               className="button secondary"
               disabled={!!workspace.busy}
-              onClick={() => void workspace.execute('fixed')}
+              onClick={() => void execute('fixed')}
             >
               <ShieldCheck size={16} />
-              Executar cenário corrigido
+              {runFeedback?.mode === 'fixed' && runFeedback.status === 'running'
+                ? 'Executando cenário corrigido…'
+                : 'Executar cenário corrigido'}
             </button>
+            {feedback('fixed')}
           </article>
         </div>
-        {workspace.busy === 'run' && (
-          <p role="status">Executando controles e salvando evidências…</p>
-        )}
-        {workspace.lastRun && (
-          <div className="run-result">
-            <span className="eyebrow">ÚLTIMA EXECUÇÃO NESTA SESSÃO</span>
-            <h3>
-              {workspace.lastRun.verdict === 'vulnerable'
+        {displayedRun && (
+          <div
+            className="run-result"
+            ref={resultPanel}
+            tabIndex={-1}
+            role="region"
+            aria-labelledby="run-result-title"
+          >
+            <span className="eyebrow">
+              {workspace.lastRun
+                ? 'ÚLTIMA EXECUÇÃO NESTA SESSÃO'
+                : 'ÚLTIMA EXECUÇÃO SALVA NO HISTÓRICO'}
+            </span>
+            <h3 id="run-result-title">
+              {displayedRun.verdict === 'vulnerable'
                 ? 'BOLA demonstrada: acesso indevido confirmado.'
                 : 'Acesso entre usuários bloqueado neste teste.'}
             </h3>
             <p>
-              {new Date(workspace.lastRun.created_at).toLocaleString('pt-BR')} · ID{' '}
-              {workspace.lastRun.id.slice(0, 8)}. Este resultado se limita ao cenário executado.
+              <strong>
+                {displayedRun.mode === 'vulnerable' ? 'Cenário vulnerável' : 'Cenário corrigido'}
+              </strong>{' '}
+              · {new Date(displayedRun.created_at).toLocaleString('pt-BR')} · ID{' '}
+              {displayedRun.id.slice(0, 8)}. Este resultado se limita ao cenário executado.
             </p>
-            <EvidenceView evidence={workspace.lastRun.evidence} />
+            <EvidenceView evidence={displayedRun.evidence} />
             <a className="text-link" href="#findings">
               Consultar achados e exportar relatório <FileSearch size={16} />
             </a>

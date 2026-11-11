@@ -36,7 +36,7 @@ export function useWorkspace() {
     }
   }, [refresh])
   async function execute(mode: 'vulnerable' | 'fixed') {
-    if (lock.current) return
+    if (lock.current) return null
     lock.current = true
     setBusy('run')
     setError(null)
@@ -47,10 +47,12 @@ export function useWorkspace() {
       setLastRun(run)
       setNotice('Execução concluída e salva no histórico local.')
       await refresh()
+      return run
     } catch {
       setError(
         'Não foi possível confirmar a execução. Atualize o histórico antes de repetir: a resposta pode ter sido interrompida após o salvamento.',
       )
+      return null
     } finally {
       lock.current = false
       setBusy(null)

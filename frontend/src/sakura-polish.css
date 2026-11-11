@@ -522,6 +522,36 @@
 .workspace-page .lab-scenarios .button {
   margin-top: auto;
 }
+.workspace-page .scenario-feedback {
+  width: 100%;
+  margin-top: 14px;
+  padding: 12px;
+  border: 1px solid var(--border-reading);
+  border-radius: var(--radius-control);
+  color: var(--text-support);
+  background: var(--surface-reading);
+  font-size: 13px;
+  line-height: 1.6;
+}
+.workspace-page .scenario-feedback strong {
+  display: block;
+}
+.workspace-page .scenario-feedback p {
+  margin: 8px 0;
+  font-size: 13px;
+}
+.workspace-page .scenario-feedback.is-error {
+  color: #7c3043;
+  border-color: #c78b9c;
+  background: #fff1f4;
+}
+.workspace-page .run-result {
+  scroll-margin-top: 24px;
+}
+.workspace-page .run-result:focus {
+  outline: 3px solid #80365e;
+  outline-offset: 4px;
+}
 .workspace-page .response-code {
   font-size: 13px;
   line-height: 1.75;
