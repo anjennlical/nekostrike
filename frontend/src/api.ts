@@ -1,0 +1,36 @@
+export type Health = {
+  status: 'ok'
+  service: 'nekostrike-api'
+  version: string
+  environment: 'local'
+  timestamp: string
+  lab: { status: 'ready' }
+  ai: { status: 'not_implemented' }
+}
+
+export function parseHealth(value: unknown): Health {
+  if (!value || typeof value !== 'object') throw new Error('Resposta inválida da API.')
+  const data = value as Partial<Health>
+  if (
+    data.status !== 'ok' ||
+    data.service !== 'nekostrike-api' ||
+    data.environment !== 'local' ||
+    typeof data.version !== 'string' ||
+    typeof data.timestamp !== 'string' ||
+    !Number.isFinite(Date.parse(data.timestamp)) ||
+    data.lab?.status !== 'ready' ||
+    data.ai?.status !== 'not_implemented'
+  )
+    throw new Error('A resposta não corresponde ao contrato do NekoStrike.')
+  return data as Health
+}
+
+export async function fetchHealth(signal: AbortSignal): Promise<Health> {
+  const response = await fetch('/api/health', {
+    signal,
+    headers: { Accept: 'application/json' },
+    cache: 'no-store',
+  })
+  if (!response.ok) throw new Error(`A conexão retornou HTTP ${response.status}.`)
+  return parseHealth(await response.json())
+}

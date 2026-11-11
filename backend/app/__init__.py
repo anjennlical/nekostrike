@@ -1,0 +1,1 @@
+"""NekoStrike local API."""
