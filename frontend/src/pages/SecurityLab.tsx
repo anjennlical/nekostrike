@@ -18,7 +18,7 @@ export default function SecurityLab({
   workspace: WorkspaceState
 }) {
   return (
-    <>
+    <div className="workspace-page lab-page">
       <section className="section-banner lab-banner">
         <div className="lab-insignia" aria-hidden="true">
           <FlaskConical size={30} />
@@ -31,13 +31,21 @@ export default function SecurityLab({
             versão corrigida e acompanhe as respostas reais de cada verificação.
           </p>
         </div>
-        <span className="subtle-tag">BOLA · disponível</span>
+        <span className="subtle-tag">BOLA · implementado</span>
       </section>
       <Panel title="Um pedido. Dois usuários. Uma fronteira." eyebrow="01 / AUTORIZAÇÃO DE OBJETOS">
         <p className="panel-description">
           Alice pode ler seu próprio pedido. Mas será que consegue ler o pedido de Bob? O teste
           compara o acesso entre usuários e executa um controle corrigido. Tudo acontece dentro do
           processo, sem conexões a alvos externos.
+        </p>
+        <p className="learning-note">
+          <CircleHelp size={18} aria-hidden="true" />
+          <span>
+            <strong>O que é BOLA?</strong> É uma falha de autorização: estar conectado não deveria
+            permitir ler o pedido de outra pessoa. Aqui, HTTP 200 significa leitura permitida; HTTP
+            403 significa acesso negado.
+          </span>
         </p>
         <div className="lab-scenarios">
           <article>
@@ -46,6 +54,10 @@ export default function SecurityLab({
             <p>
               O laboratório omite a autorização por objeto. A leitura indevida deve gerar um achado
               com evidência.
+            </p>
+            <p className="scenario-outcome">
+              <strong>Resultado esperado:</strong> Alice lê o pedido de Bob e um achado é
+              registrado.
             </p>
             <button
               className="button primary"
@@ -62,6 +74,9 @@ export default function SecurityLab({
             <p>
               A autorização verifica o proprietário. O pedido de Bob deve retornar HTTP 403 e não
               gerar um achado.
+            </p>
+            <p className="scenario-outcome">
+              <strong>Resultado esperado:</strong> a leitura é bloqueada, sem novo achado.
             </p>
             <button
               className="button secondary"
@@ -150,14 +165,14 @@ export default function SecurityLab({
           </div>
         </Panel>
       </div>
-      <Panel title="O que vamos investigar" eyebrow="PRÓXIMAS ENTREGAS">
+      <Panel title="Um laboratório em evolução" eyebrow="IMPLEMENTADO & PLANEJADO">
         <div className="test-grid">
           {[
             {
               n: '01',
               title: 'Autorização de objetos',
               text: 'Verificar se um usuário consegue acessar um recurso que pertence a outro usuário.',
-              tag: 'BOLA · primeira prioridade',
+              tag: 'BOLA · implementado',
             },
             {
               n: '02',
@@ -186,6 +201,6 @@ export default function SecurityLab({
           ))}
         </div>
       </Panel>
-    </>
+    </div>
   )
 }

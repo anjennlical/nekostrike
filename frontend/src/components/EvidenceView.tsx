@@ -11,7 +11,10 @@ export default function EvidenceView({ evidence }: { evidence: Evidence[] }) {
         <details key={item.scenario} className="evidence-item">
           <summary>
             <span>{labels[item.scenario]}</span>
-            <span className="subtle-tag">HTTP {item.status}</span>
+            <span className="subtle-tag">
+              HTTP {item.status}
+              {item.status === 200 ? ' · Permitido' : item.status === 403 ? ' · Negado' : ''}
+            </span>
           </summary>
           <p>
             Ator: <strong>{item.actor}</strong> · Modo:{' '}

@@ -7,6 +7,7 @@ import {
   FileSearch,
   FlaskConical,
   LockKeyhole,
+  RefreshCw,
   ScanLine,
   Shield,
   ShieldCheck,
@@ -17,6 +18,7 @@ import SakuraBloom from '../components/SakuraBloom'
 import type { Connection } from '../useHealth'
 import type { ReactNode } from 'react'
 import Panel from '../components/Panel'
+import MetricCard from '../components/MetricCard'
 import type { WorkspaceState } from '../useWorkspace'
 
 export default function Overview({
@@ -29,7 +31,7 @@ export default function Overview({
   workspace: WorkspaceState
 }) {
   return (
-    <>
+    <div className="overview-page workspace-page">
       <section className="sakura-hero overview-hero">
         <SakuraBloom className="hero-blossom" />
         <div className="sakura-hero-copy">
@@ -46,10 +48,10 @@ export default function Overview({
             <br className="desktop-break" /> Vamos construir uma descoberta de cada vez.
           </p>
           <div className="hero-actions">
-            {verify}
-            <a className="text-link" href="#lab">
+            <a className="button primary" href="#lab">
               Explorar laboratório <ArrowRight size={16} />
             </a>
+            {verify}
           </div>
         </div>
         <div className="overview-mascot">
@@ -88,20 +90,8 @@ export default function Overview({
               (finding) => finding.review_status === 'reviewed',
             ).length,
           },
-        ].map(({ title, icon: Icon, tone, sub, value }) => (
-          <section className="metric-card" key={title}>
-            <div className="metric-top">
-              <span>{title}</span>
-              <span className={`metric-icon ${tone}`}>
-                <Icon size={19} />
-              </span>
-            </div>
-            <div className="metric-value">
-              {value ?? '—'}{' '}
-              <span>{value === undefined ? 'Dados indisponíveis' : 'No histórico local'}</span>
-            </div>
-            <p>{sub}</p>
-          </section>
+        ].map((metric) => (
+          <MetricCard key={metric.title} {...metric} loading={workspace.loading} />
         ))}
       </div>
       <div className="overview-grid">
@@ -114,7 +104,8 @@ export default function Overview({
               disabled={workspace.loading || !!workspace.busy}
               onClick={() => void workspace.refresh()}
             >
-              Atualizar dados
+              <RefreshCw size={14} className={workspace.loading ? 'spin' : ''} aria-hidden="true" />
+              {workspace.loading ? 'Atualizando…' : 'Atualizar dados'}
             </button>
           }
         >
@@ -131,7 +122,7 @@ export default function Overview({
                     </strong>
                     <small>{new Date(run.created_at).toLocaleString('pt-BR')}</small>
                   </div>
-                  <span className="subtle-tag">
+                  <span className={`subtle-tag verdict-${run.verdict}`}>
                     {run.verdict === 'vulnerable' ? 'Achado confirmado' : 'Acesso bloqueado'}
                   </span>
                 </div>
@@ -148,7 +139,13 @@ export default function Overview({
                   <Sparkles size={13} />
                 </span>
               </div>
-              <h3>Toda investigação tem um começo.</h3>
+              <h3>
+                {workspace.data
+                  ? 'Toda investigação tem um começo.'
+                  : workspace.loading
+                    ? 'Buscando suas evidências…'
+                    : 'Seu histórico está indisponível.'}
+              </h3>
               <p>
                 {workspace.data
                   ? 'Nenhuma execução registrada. Execute o cenário BOLA no laboratório para começar.'
@@ -227,13 +224,13 @@ export default function Overview({
             <span>02</span> Investigar <ChevronRight size={14} />
           </a>
           <a href="#mochi">
-            <span>03</span> Analisar <ChevronRight size={14} />
+            <span>03</span> Mochi AI · em breve <ChevronRight size={14} />
           </a>
           <a href="#findings">
             <span>04</span> Relatar <ChevronRight size={14} />
           </a>
         </div>
       </section>
-    </>
+    </div>
   )
 }

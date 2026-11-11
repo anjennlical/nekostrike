@@ -33,7 +33,7 @@ const steps = [
 
 export default function MochiAI() {
   return (
-    <div className="mochi-page">
+    <div className="mochi-page workspace-page">
       <section className="sakura-hero" aria-labelledby="mochi-introduction">
         <SakuraBloom className="hero-blossom" />
         <div className="sakura-hero-copy">

@@ -35,7 +35,7 @@ export default function Findings({ workspace }: { workspace: WorkspaceState }) {
     }
   }
   return (
-    <>
+    <div className="workspace-page findings-page">
       <Panel
         title="Achados com contexto"
         eyebrow="EVIDÊNCIAS & REVISÃO"
@@ -55,6 +55,13 @@ export default function Findings({ workspace }: { workspace: WorkspaceState }) {
             </select>
           </label>
         </div>
+        {workspace.data && (
+          <p className="results-count" role="status">
+            {workspace.loading
+              ? 'Atualizando o histórico…'
+              : `Registros exibidos: ${findings?.length ?? 0} de ${workspace.data.findings.length}.`}
+          </p>
+        )}
         {!workspace.data ? (
           <p role="status">
             {workspace.loading
@@ -74,9 +81,15 @@ export default function Findings({ workspace }: { workspace: WorkspaceState }) {
                 ? 'Não há achados registrados. A ausência de achados não comprova segurança.'
                 : 'Escolha outro estado de revisão para consultar os registros.'}
             </p>
-            <a className="button primary" href="#lab">
-              Explorar Security Lab <ArrowRight size={16} />
-            </a>
+            {filter === 'all' ? (
+              <a className="button primary" href="#lab">
+                Explorar Security Lab <ArrowRight size={16} />
+              </a>
+            ) : (
+              <button className="button secondary" onClick={() => setFilter('all')}>
+                Ver todos os achados
+              </button>
+            )}
           </div>
         ) : (
           <div className="finding-list">
@@ -86,7 +99,7 @@ export default function Findings({ workspace }: { workspace: WorkspaceState }) {
                 <article className="finding-record" key={finding.id}>
                   <div className="finding-record-head">
                     <span className="severity-high">Alta · {finding.category}</span>
-                    <span className="subtle-tag">
+                    <span className={`subtle-tag review-${finding.review_status}`}>
                       {finding.review_status === 'reviewed' ? 'Revisado' : 'Revisão pendente'}
                     </span>
                   </div>
@@ -137,6 +150,9 @@ export default function Findings({ workspace }: { workspace: WorkspaceState }) {
                         ? 'Reabrir revisão'
                         : 'Marcar como revisado'}
                   </button>
+                  <p className="review-hint">
+                    Revisar confirma sua conferência da evidência; não corrige a vulnerabilidade.
+                  </p>
                 </article>
               )
             })}
@@ -168,6 +184,6 @@ export default function Findings({ workspace }: { workspace: WorkspaceState }) {
           </p>
         )}
       </Panel>
-    </>
+    </div>
   )
 }

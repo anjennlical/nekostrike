@@ -2,7 +2,7 @@ import Overview from './pages/Overview'
 import SecurityLab from './pages/SecurityLab'
 import Findings from './pages/Findings'
 import MochiAI from './pages/MochiAI'
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import {
   Activity,
   ArrowUpRight,
@@ -57,6 +57,8 @@ function currentPage(): Page {
 export default function App() {
   const [page, setPage] = useState<Page>(currentPage)
   const [menuOpen, setMenuOpen] = useState(false)
+  const menuButton = useRef<HTMLButtonElement>(null)
+  const navigation = useRef<HTMLElement>(null)
   const { connection, refresh } = useHealth()
   const workspace = useWorkspace()
   const selected = pages.find((item) => item.id === page)!
@@ -73,15 +75,22 @@ export default function App() {
     document.title = `${selected.label} · NekoStrike`
   }, [selected.label])
   useEffect(() => {
+    if (menuOpen)
+      navigation.current?.querySelector<HTMLAnchorElement>('[aria-current="page"]')?.focus()
+  }, [menuOpen])
+  useEffect(() => {
     const close = (event: KeyboardEvent) => {
-      if (event.key === 'Escape') setMenuOpen(false)
+      if (event.key === 'Escape' && menuOpen) {
+        setMenuOpen(false)
+        menuButton.current?.focus()
+      }
     }
     window.addEventListener('keydown', close)
     return () => window.removeEventListener('keydown', close)
-  }, [])
+  }, [menuOpen])
   const verify = (
     <button
-      className="button primary"
+      className={`button ${page === 'overview' ? 'secondary' : 'primary'}`}
       onClick={() => {
         void refresh()
         void workspace.refresh()
@@ -130,14 +139,17 @@ export default function App() {
           <LockKeyhole size={13} />
         </div>
         <p className="nav-heading">WORKSPACE</p>
-        <nav aria-label="Navegação principal">
+        <nav id="workspace-navigation" ref={navigation} aria-label="Navegação principal">
           {pages.map(({ id, label, icon: Icon }) => (
             <a
               href={`#${id}`}
               key={id}
               className={`nav-link ${page === id ? 'active' : ''}`}
               aria-current={page === id ? 'page' : undefined}
-              onClick={() => setMenuOpen(false)}
+              onClick={() => {
+                if (menuOpen) document.getElementById('main-content')?.focus()
+                setMenuOpen(false)
+              }}
             >
               <Icon size={19} />
               <span>{label}</span>
@@ -179,6 +191,8 @@ export default function App() {
           <div className="breadcrumb">
             <button
               className="icon-button mobile-menu"
+              ref={menuButton}
+              aria-controls="workspace-navigation"
               aria-label={menuOpen ? 'Fechar navegação' : 'Abrir navegação'}
               aria-expanded={menuOpen}
               onClick={() => setMenuOpen(!menuOpen)}
