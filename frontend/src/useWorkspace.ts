@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
-import { parseRun, parseWorkspace, workspaceRequest } from './workspace-api'
+import { parseRun, parseWorkspace, workspaceRequest, storageRecoveryHint } from './workspace-api'
 import type { CheckType, Run, Workspace } from './workspace-api'
 
 export function useWorkspace() {
@@ -18,11 +18,12 @@ export function useWorkspace() {
     try {
       const next = parseWorkspace(await workspaceRequest('workspace'))
       if (current === generation.current) setData(next)
-    } catch {
+    } catch (error) {
       if (current === generation.current) {
         setData(null)
         setError(
-          'Não foi possível carregar o histórico. Os contadores estão indisponíveis; verifique o backend e tente atualizar.',
+          storageRecoveryHint(error) ??
+            'Não foi possível carregar o histórico. Os contadores estão indisponíveis; verifique o backend e tente atualizar.',
         )
       }
     } finally {
@@ -53,9 +54,10 @@ export function useWorkspace() {
       setNotice('Execução concluída e salva no histórico local.')
       await refresh()
       return run
-    } catch {
+    } catch (error) {
       setError(
-        'Não foi possível confirmar a execução. Atualize o histórico antes de repetir: a resposta pode ter sido interrompida após o salvamento.',
+        storageRecoveryHint(error) ??
+          'Não foi possível confirmar a execução. Atualize o histórico antes de repetir: a resposta pode ter sido interrompida após o salvamento.',
       )
       return null
     } finally {
@@ -73,9 +75,10 @@ export function useWorkspace() {
       await workspaceRequest(`findings/${encodeURIComponent(id)}`, 'PATCH', { review_status })
       setNotice('Estado de revisão salvo. Revisado não significa corrigido.')
       await refresh()
-    } catch {
+    } catch (error) {
       setError(
-        'Não foi possível confirmar a revisão. Atualize o histórico para consultar o estado salvo.',
+        storageRecoveryHint(error) ??
+          'Não foi possível confirmar a revisão. Atualize o histórico para consultar o estado salvo.',
       )
     } finally {
       lock.current = false

@@ -115,6 +115,37 @@ export function parseWorkspace(value: unknown): Workspace {
   }
   return { runs, findings: value.findings as Finding[] }
 }
+class StorageResponseError extends Error {
+  hint: string
+  constructor(status: number, hint: string) {
+    super(`A operação retornou HTTP ${status}.`)
+    this.hint = hint
+  }
+}
+
+export function storageRecoveryHint(error: unknown): string | null {
+  return error instanceof StorageResponseError ? error.hint : null
+}
+
+export async function workspaceResponseError(response: Response): Promise<Error> {
+  if (response.status === 503) {
+    const data: unknown = await response.json().catch(() => null)
+    if (record(data) && data.code === 'stored_data_invalid') {
+      return new StorageResponseError(
+        503,
+        'O histórico contém dados inválidos. Preserve o banco e confira um backup antes de restaurar; nenhum registro foi descartado. Consulte docs/recovery.md. Depois de corrigir a causa, atualize o histórico.',
+      )
+    }
+    if (record(data) && data.code === 'storage_unavailable') {
+      return new StorageResponseError(
+        503,
+        'O armazenamento local está indisponível. Confira a pasta do banco e suas permissões, sem apagar arquivos. Consulte docs/recovery.md. Depois de corrigir a causa, atualize o histórico.',
+      )
+    }
+  }
+  return new Error(`A operação retornou HTTP ${response.status}.`)
+}
+
 export async function workspaceRequest(path: string, method = 'GET', body?: unknown) {
   const response = await fetch(`/api/${path}`, {
     method,
@@ -126,6 +157,6 @@ export async function workspaceRequest(path: string, method = 'GET', body?: unkn
     },
     ...(body ? { body: JSON.stringify(body) } : {}),
   })
-  if (!response.ok) throw new Error(`A operação retornou HTTP ${response.status}.`)
+  if (!response.ok) throw await workspaceResponseError(response)
   return response.json() as Promise<unknown>
 }

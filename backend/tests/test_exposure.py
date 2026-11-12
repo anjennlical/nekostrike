@@ -78,11 +78,16 @@ async def test_unexpected_responses_are_inconclusive_and_not_saved(tmp_path, mon
 
 async def test_legacy_migration_preserves_evidence_ids_and_review(tmp_path):
     path = tmp_path/'legacy.db'
+    # Capture a complete real BOLA record, then represent it in the legacy schema.
+    async with AsyncClient(transport=ASGITransport(app=create_app(tmp_path/'source.db')), base_url='http://127.0.0.1') as client:
+        await client.post('/api/runs', json={'mode':'vulnerable'}, headers=HEADERS)
+        original = (await client.get('/api/workspace')).json()
+    run, finding = original['runs'][0], original['findings'][0]
     with sqlite3.connect(path) as db:
         db.executescript('CREATE TABLE runs (id TEXT PRIMARY KEY, created_at TEXT NOT NULL, mode TEXT NOT NULL, verdict TEXT NOT NULL, evidence TEXT NOT NULL); CREATE TABLE findings (id TEXT PRIMARY KEY, run_id TEXT NOT NULL REFERENCES runs(id), review_status TEXT NOT NULL, details TEXT NOT NULL);')
-        db.execute('INSERT INTO runs VALUES (?,?,?,?,?)', ('old','2026-11-11T00:00:00Z','vulnerable','vulnerable','[{"original": true}]'))
-        db.execute('INSERT INTO findings VALUES (?,?,?,?)', ('f','old','reviewed',json.dumps({'id':'f','run_id':'old','severity':'high'})))
+        db.execute('INSERT INTO runs VALUES (?,?,?,?,?)', (run['id'],run['created_at'],run['mode'],run['verdict'],json.dumps(run['evidence'])))
+        db.execute('INSERT INTO findings VALUES (?,?,?,?)', (finding['id'],finding['run_id'],'reviewed',json.dumps(finding)))
     for _ in range(2):
         state = Store(path).snapshot()
-        assert state['runs'][0] == {'id':'old','created_at':'2026-11-11T00:00:00Z','mode':'vulnerable','verdict':'vulnerable','evidence':[{'original':True}],'check_type':'bola'}
-        assert state['findings'][0]['review_status'] == 'reviewed'
+        assert state['runs'] == [run]
+        assert state['findings'] == [{**finding, 'review_status': 'reviewed'}]

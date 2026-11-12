@@ -2,6 +2,7 @@
 import json
 import sqlite3
 from pathlib import Path
+from .stored_data import StoredDataError, StoragePathError, decode_json, validate_snapshot
 
 
 class Store:
@@ -9,7 +10,10 @@ class Store:
         self.path = path
 
     def connect(self):
-        self.path.parent.mkdir(parents=True, exist_ok=True)
+        try:
+            self.path.parent.mkdir(parents=True, exist_ok=True)
+        except OSError:
+            raise StoragePathError("local storage path unavailable") from None
         connection = sqlite3.connect(self.path, timeout=10)
         connection.row_factory = sqlite3.Row
         try:
@@ -58,11 +62,14 @@ class Store:
                 runs = [dict(row) for row in connection.execute("SELECT * FROM runs ORDER BY created_at DESC, id DESC")]
                 findings = []
                 for row in connection.execute("SELECT * FROM findings ORDER BY rowid DESC"):
-                    finding = json.loads(row["details"])
+                    finding = decode_json(row["details"], dict)
+                    if finding.get("id") != row["id"] or finding.get("run_id") != row["run_id"]:
+                        raise StoredDataError("persisted identifiers mismatch")
                     finding["review_status"] = row["review_status"]
                     findings.append(finding)
                 for run in runs:
-                    run["evidence"] = json.loads(run["evidence"])
+                    run["evidence"] = decode_json(run["evidence"], list)
+                validate_snapshot(runs, findings)
                 return {"runs": runs, "findings": findings}
         finally:
             connection.close()
@@ -92,8 +99,8 @@ class Store:
                 row = connection.execute("""SELECT f.details, r.* FROM findings f
                     JOIN runs r ON r.id=f.run_id WHERE f.id=?""", (finding_id,)).fetchone()
                 run = dict(row)
-                details = json.loads(run.pop("details"))
-                run["evidence"] = json.loads(run["evidence"])
+                details = decode_json(run.pop("details"), dict)
+                run["evidence"] = decode_json(run["evidence"], list)
                 return {"finding": details, "run": run}
         finally:
             connection.close()

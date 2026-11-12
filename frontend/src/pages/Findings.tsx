@@ -6,6 +6,7 @@ import EvidenceView from '../components/EvidenceView'
 import type { WorkspaceState } from '../useWorkspace'
 import Notice from '../components/Notice'
 import { useScrollReveal } from '../useScrollReveal'
+import { workspaceResponseError, storageRecoveryHint } from '../workspace-api'
 
 export default function Findings({
   workspace,
@@ -32,8 +33,8 @@ export default function Findings({
         cache: 'no-store',
         signal: AbortSignal.timeout(10000),
       })
-      if (!response.ok || !response.headers.get('content-type')?.includes('text/markdown'))
-        throw new Error()
+      if (!response.ok) throw await workspaceResponseError(response)
+      if (!response.headers.get('content-type')?.includes('text/markdown')) throw new Error()
       const url = URL.createObjectURL(await response.blob())
       const link = document.createElement('a')
       link.href = url
@@ -43,8 +44,11 @@ export default function Findings({
         'Relatório recebido do backend; download solicitado ao navegador. Confira o arquivo na pasta Downloads.',
       )
       window.setTimeout(() => URL.revokeObjectURL(url), 1000)
-    } catch {
-      setExportError('Não foi possível exportar. Verifique o backend e tente novamente.')
+    } catch (error) {
+      setExportError(
+        storageRecoveryHint(error) ??
+          'Não foi possível exportar. Verifique o backend e tente novamente.',
+      )
     } finally {
       setExporting(false)
     }

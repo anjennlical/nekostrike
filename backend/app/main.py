@@ -14,6 +14,7 @@ from .exposure import check_exposure
 from .misconfiguration import check_misconfiguration
 from .report import markdown_report, OWASP
 from .store import Store
+from .stored_data import StoredDataError, StoragePathError
 from .ai.config import AISettings, load_settings
 from .ai.provider import AIError, Provider
 from .ai.schemas import AnalyzeInput, AnalysisResult, AIStatus
@@ -86,8 +87,15 @@ def create_app(db_path: Path | None = None, *, ai_settings: AISettings | None = 
         return response
 
     @app.exception_handler(sqlite3.Error)
+    @app.exception_handler(StoragePathError)
     async def database_error(request, exc):
-        return JSONResponse(status_code=503, content={"detail": "Armazenamento local indisponível. Verifique o arquivo SQLite."})
+        return JSONResponse(status_code=503, content={"code": "storage_unavailable", "detail": "Armazenamento local indisponível. Verifique o arquivo SQLite."})
+
+    @app.exception_handler(StoredDataError)
+    async def invalid_stored_data(request, exc):
+        return JSONResponse(status_code=503, content={
+            "code": "stored_data_invalid",
+            "detail": "Histórico local contém dados inválidos. Preserve o banco e confira um backup antes de restaurar. Nenhum registro foi descartado."})
 
     @app.get("/api/health", response_model=HealthResponse, tags=["System"])
     def health():
