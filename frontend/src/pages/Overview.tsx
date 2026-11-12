@@ -3,17 +3,15 @@ import {
   ArrowRight,
   BookOpen,
   ChevronRight,
-  CodeXml,
   FileSearch,
   FlaskConical,
   LockKeyhole,
   RefreshCw,
   ScanLine,
   Shield,
-  ShieldCheck,
   Sparkles,
 } from 'lucide-react'
-import Mochi from '../components/Mochi'
+import MochiMascot from '../components/MochiMascot'
 import SakuraBloom from '../components/SakuraBloom'
 import type { Connection } from '../useHealth'
 import type { ReactNode } from 'react'
@@ -56,14 +54,13 @@ export default function Overview({
           </div>
         </div>
         <div className="overview-mascot">
-          <div className="art-label label-code">
-            <CodeXml size={16} />
-            <span>evidence first</span>
-          </div>
-          <Mochi />
-          <span className="art-label label-safe">
-            <ShieldCheck size={14} /> safe little workspace
-          </span>
+          <MochiMascot
+            connection={connection.status}
+            busy={workspace.busy}
+            loading={workspace.loading}
+            error={workspace.error}
+            lastRun={workspace.lastRun}
+          />
         </div>
       </section>
       <div className="metrics-grid">

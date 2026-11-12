@@ -1,0 +1,193 @@
+/* Foundation tokens; application limited to the Overview mascot pilot (A/B). */
+:root {
+  --motion-fast: 140ms;
+  --motion-normal: 240ms;
+  --motion-gentle: 400ms;
+  --motion-ease: cubic-bezier(0.22, 0.61, 0.36, 1);
+  --motion-breathe: 8s;
+  --motion-tail: 14s;
+  --motion-blink: 13.7s;
+}
+.mochi-mascot {
+  position: relative;
+  min-width: 0;
+}
+.mochi-portrait {
+  position: relative;
+}
+.mochi-mascot .art-label {
+  pointer-events: none;
+}
+.mochi-pet {
+  display: block;
+  width: 100%;
+  padding: 0;
+  border: 1px solid transparent;
+  border-radius: 28px;
+  background: transparent;
+  cursor: pointer;
+  touch-action: manipulation;
+  transition:
+    background-color var(--motion-normal) var(--motion-ease),
+    border-color var(--motion-normal) var(--motion-ease);
+}
+.mochi-pet:focus-visible,
+.mochi-motion-toggle:focus-visible {
+  outline: 3px solid #713451;
+  outline-offset: 4px;
+}
+.mochi-pet:active {
+  border-color: #a76593;
+}
+@media (hover: hover) {
+  .mochi-pet:hover {
+    background: #fff5fb44;
+    border-color: #c890b155;
+  }
+}
+.mochi-mascot .mochi {
+  filter: none;
+}
+.mochi-caption {
+  position: relative;
+  padding: 12px 14px;
+  border: 1px solid #c8a0be;
+  border-radius: 15px;
+  background: #fff5fa;
+  color: #493049;
+  min-height: 104px;
+  font:
+    12px/1.5 'Segoe UI',
+    sans-serif;
+}
+.mochi-caption strong {
+  font-size: 12px;
+  color: #713451;
+}
+.mochi-caption p {
+  margin: 4px 0 0;
+}
+.mochi-motion-toggle,
+.mochi-motion-note {
+  position: relative;
+  display: block;
+  margin: 4px auto 0;
+  padding: 10px 6px;
+  min-height: 44px;
+  max-width: 100%;
+  color: #67415d;
+  font:
+    12px/1.5 'Segoe UI',
+    sans-serif;
+  text-align: center;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+}
+.mochi-motion-toggle {
+  cursor: pointer;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+.mochi-mascot[data-emotion='warning'] .mochi-caption {
+  border-color: #a87539;
+}
+.mochi-mascot[data-emotion='error'] .mochi-caption {
+  border-color: #aa5273;
+}
+.mochi-mascot[data-emotion='success'] .mochi-caption {
+  border-color: #638872;
+}
+.mochi-body {
+  transform-origin: 175px 246px;
+}
+.mochi-tail {
+  transform-origin: 240px 218px;
+}
+.mochi-eyes {
+  transform-box: fill-box;
+  transform-origin: center;
+}
+.mochi-gaze {
+  transform-origin: 175px 180px;
+  transform: translate(var(--mochi-look-x, 0px), var(--mochi-look-y, 0px))
+    rotate(var(--mochi-look-angle, 0deg));
+  transition: transform var(--motion-gentle) var(--motion-ease);
+}
+@media (prefers-reduced-motion: no-preference) {
+  .mochi-mascot[data-motion='on'] .mochi-body {
+    animation: mochi-breathe var(--motion-breathe) ease-in-out infinite;
+  }
+  .mochi-mascot[data-motion='on'] .mochi-tail {
+    animation: mochi-tail var(--motion-tail) ease-in-out infinite;
+  }
+  .mochi-mascot[data-motion='on'][data-emotion='idle'] .mochi-eyes,
+  .mochi-mascot[data-motion='on'][data-emotion='warning'] .mochi-eyes {
+    animation: mochi-blink var(--motion-blink) linear infinite;
+  }
+  .mochi-mascot[data-motion='on'][data-emotion='happy'] .mochi-body,
+  .mochi-mascot[data-motion='on'][data-emotion='success'] .mochi-body {
+    animation: mochi-content 700ms var(--motion-ease) 1;
+  }
+}
+@keyframes mochi-breathe {
+  0%,
+  100% {
+    transform: scaleY(1);
+  }
+  50% {
+    transform: scaleY(1.008);
+  }
+}
+@keyframes mochi-tail {
+  0%,
+  35%,
+  100% {
+    transform: rotate(0deg);
+  }
+  55% {
+    transform: rotate(2deg);
+  }
+  75% {
+    transform: rotate(-0.7deg);
+  }
+}
+@keyframes mochi-blink {
+  0%,
+  91%,
+  93%,
+  100% {
+    transform: scaleY(1);
+  }
+  92% {
+    transform: scaleY(0.12);
+  }
+}
+@keyframes mochi-content {
+  0%,
+  100% {
+    transform: rotate(0deg);
+  }
+  30% {
+    transform: rotate(-1deg);
+  }
+  65% {
+    transform: rotate(0.7deg);
+  }
+}
+.mochi-mascot[data-motion='off'] .mochi-animated {
+  animation: none !important;
+  transition: none !important;
+  transform: none !important;
+}
+@media (prefers-reduced-motion: reduce) {
+  .mochi-mascot *,
+  .mochi-mascot *::before,
+  .mochi-mascot *::after {
+    animation: none !important;
+    transition: none !important;
+  }
+  .mochi-mascot .mochi-animated {
+    transform: none !important;
+  }
+}
