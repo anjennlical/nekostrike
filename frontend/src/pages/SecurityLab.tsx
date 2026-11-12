@@ -80,7 +80,7 @@ export default function SecurityLab({
         </div>
       )
     return (
-      <div className="scenario-feedback" role="status">
+      <div className="scenario-feedback" role="status" data-state={runFeedback.status}>
         {runFeedback.status === 'running' ? (
           'Executando e salvando… Aguarde a confirmação.'
         ) : (
@@ -158,6 +158,7 @@ export default function SecurityLab({
             <button
               className="button primary"
               disabled={!!workspace.busy || !selectedReady}
+              aria-busy={runFeedback?.mode === 'vulnerable' && runFeedback.status === 'running'}
               onClick={() => void execute('vulnerable')}
             >
               <FlaskConical size={16} />
@@ -177,6 +178,7 @@ export default function SecurityLab({
             <button
               className="button secondary"
               disabled={!!workspace.busy || !selectedReady}
+              aria-busy={runFeedback?.mode === 'fixed' && runFeedback.status === 'running'}
               onClick={() => void execute('fixed')}
             >
               <ShieldCheck size={16} />

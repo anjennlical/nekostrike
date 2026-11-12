@@ -9,7 +9,7 @@ export function readMotionEnvironment(
   return { reduced: media.matches, visible: !page.hidden }
 }
 
-/** One subscription per mounted pilot, including cleanup under React StrictMode. */
+/** Shared workspace subscription, including cleanup under React StrictMode. */
 export function subscribeMotionEnvironment(
   notify: (state: ReturnType<typeof readMotionEnvironment>) => void,
   media: MotionPreference = window.matchMedia(reducedMotionQuery),

@@ -2,12 +2,13 @@ import { memo, useEffect, useId, useRef, type PointerEvent } from 'react'
 import { CodeXml, ShieldCheck } from 'lucide-react'
 import Mochi from './Mochi'
 import { mochiGaze, mochiLabels, type MochiSignals } from '../mochi-state'
-import { useMochiMotion, useMochiState } from '../useMochiState'
+import { useMochiState } from '../useMochiState'
+import { MotionToggle, useWorkspaceMotion } from './WorkspaceMotion'
 
 /** Overview pilot. Local state and bounded pointer writes never update the app root. */
 export default memo(function MochiMascot(signals: MochiSignals) {
   const { emotion, message, greet } = useMochiState(signals)
-  const motion = useMochiMotion()
+  const motion = useWorkspaceMotion()
   const description = useId()
   const button = useRef<HTMLButtonElement>(null)
   const bounds = useRef<DOMRect | null>(null)
@@ -86,13 +87,7 @@ export default memo(function MochiMascot(signals: MochiSignals) {
         <strong>{mochiLabels[emotion]}</strong>
         <p>{message}</p>
       </div>
-      {motion.reduced ? (
-        <p className="mochi-motion-note">Movimento reduzido pelo sistema.</p>
-      ) : (
-        <button type="button" className="mochi-motion-toggle" onClick={motion.toggle}>
-          {motion.paused ? 'Retomar movimentos da Mochi' : 'Pausar movimentos da Mochi'}
-        </button>
-      )}
+      <MotionToggle />
     </div>
   )
 })

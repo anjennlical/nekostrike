@@ -1,6 +1,6 @@
 export default function StatusBadge({ status }: { status: 'loading' | 'online' | 'offline' }) {
   return (
-    <span className={`status-badge ${status}`}>
+    <span key={status} className={`status-badge ${status}`}>
       <span className="status-dot" />
       {status === 'online'
         ? 'API conectada'

@@ -21,6 +21,7 @@ import {
 import StatusBadge from './components/StatusBadge'
 import { useHealth } from './useHealth'
 import { useWorkspace } from './useWorkspace'
+import { MotionToggle, useWorkspaceMotion } from './components/WorkspaceMotion'
 
 const pages = [
   {
@@ -55,6 +56,7 @@ function currentPage(): Page {
 }
 
 export default function App() {
+  const motion = useWorkspaceMotion()
   const [page, setPage] = useState<Page>(currentPage)
   const [menuOpen, setMenuOpen] = useState(false)
   const menuButton = useRef<HTMLButtonElement>(null)
@@ -96,6 +98,7 @@ export default function App() {
         void workspace.refresh()
       }}
       disabled={connection.status === 'loading'}
+      aria-busy={connection.status === 'loading'}
     >
       <RefreshCw size={16} className={connection.status === 'loading' ? 'spin' : ''} />
       {connection.status === 'loading' ? 'Verificando…' : 'Verificar conexão'}
@@ -110,7 +113,7 @@ export default function App() {
     : null
 
   return (
-    <div className="app-shell sakura-theme">
+    <div className="app-shell sakura-theme" data-motion={motion.enabled ? 'on' : 'off'}>
       <a
         className="skip-link"
         href="#main-content"
@@ -204,6 +207,7 @@ export default function App() {
             <strong>{selected.label}</strong>
           </div>
           <div className="topbar-right">
+            <MotionToggle compact />
             <span className="local-pill">
               <LockKeyhole size={12} /> AMBIENTE LOCAL
             </span>

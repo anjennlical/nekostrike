@@ -8,6 +8,7 @@ import {
   Sparkles,
 } from 'lucide-react'
 import MochiStudio from '../components/MochiStudio'
+import { MotionToggle } from '../components/WorkspaceMotion'
 import SakuraBloom from '../components/SakuraBloom'
 import Panel from '../components/Panel'
 
@@ -65,6 +66,10 @@ export default function MochiAI() {
           <figcaption>
             <PawPrint size={13} /> MOCHI’S CORNER <span>FEITO DE CURIOSIDADE & CUIDADO</span>
           </figcaption>
+          <div className="studio-controls">
+            <p>Música imaginária, patinhas no teclado. Cena decorativa, sem áudio ou IA ativa.</p>
+            <MotionToggle />
+          </div>
         </figure>
         <div className="hero-bottom-line" aria-hidden="true">
           <span />

@@ -92,16 +92,23 @@ export default function Findings({ workspace }: { workspace: WorkspaceState }) {
             )}
           </div>
         ) : (
-          <div className="finding-list">
+          <div className="finding-list" data-filter={filter}>
             {findings?.map((finding) => {
               const run = workspace.data!.runs.find((item) => item.id === finding.run_id)!
               return (
-                <article className="finding-record" key={finding.id}>
+                <article
+                  className="finding-record"
+                  key={finding.id}
+                  data-recent={workspace.lastRun?.id === finding.run_id || undefined}
+                >
                   <div className="finding-record-head">
                     <span className={`severity-${finding.severity}`}>
                       {finding.severity === 'high' ? 'Alta' : 'Média'} · {finding.category}
                     </span>
-                    <span className={`subtle-tag review-${finding.review_status}`}>
+                    <span
+                      key={finding.review_status}
+                      className={`subtle-tag review-${finding.review_status}`}
+                    >
                       {finding.review_status === 'reviewed' ? 'Revisado' : 'Revisão pendente'}
                     </span>
                   </div>
@@ -144,6 +151,7 @@ export default function Findings({ workspace }: { workspace: WorkspaceState }) {
                   <button
                     className="button secondary"
                     disabled={!!workspace.busy}
+                    aria-busy={workspace.busy === finding.id}
                     onClick={() =>
                       void workspace.review(
                         finding.id,
@@ -180,6 +188,7 @@ export default function Findings({ workspace }: { workspace: WorkspaceState }) {
           <button
             className="button primary"
             disabled={!workspace.data || exporting}
+            aria-busy={exporting}
             onClick={() => void download()}
           >
             <Download size={17} />

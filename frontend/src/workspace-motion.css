@@ -1,0 +1,389 @@
+/* C/D: shared feedback and quiet atmosphere. All continuous motion is pausable. */
+.motion-toggle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  min-height: 44px;
+  min-width: 44px;
+  max-width: 100%;
+  padding: 8px 12px;
+  border: 1px solid #c8a0be;
+  border-radius: 12px;
+  background: #fff5fa;
+  color: #67415d;
+  font:
+    12px/1.5 'Segoe UI',
+    sans-serif;
+  cursor: pointer;
+}
+.motion-toggle svg {
+  flex-shrink: 0;
+}
+.motion-toggle-compact {
+  color: #ffe8f5;
+  background: #ffffff0a;
+  border-color: #f5b5d144;
+}
+.motion-preference {
+  display: block;
+  max-width: 170px;
+  font-size: 11px;
+  line-height: 1.5;
+  text-align: center;
+}
+.topbar .motion-preference {
+  color: #ffe8f5;
+}
+.mochi-mascot > .motion-toggle,
+.mochi-mascot > .motion-preference {
+  display: flex;
+  margin: 8px auto 0;
+}
+.studio-controls {
+  position: relative;
+  padding: 6px 12px 12px;
+  text-align: center;
+  color: #684761;
+}
+.studio-controls p {
+  max-width: 320px;
+  margin: 0 auto 6px;
+  font-size: 12px;
+  line-height: 1.5;
+}
+.studio-controls .motion-preference {
+  margin: auto;
+}
+.sakura-theme :is(.button, .sakura-button, .motion-toggle, .icon-button, .nav-link) {
+  transition:
+    transform var(--motion-fast) var(--motion-ease),
+    color var(--motion-fast) var(--motion-ease),
+    background-color var(--motion-fast) var(--motion-ease),
+    border-color var(--motion-fast) var(--motion-ease),
+    box-shadow var(--motion-normal) var(--motion-ease);
+}
+.sakura-theme :is(.panel, .metric-card, .finding-record) {
+  transition:
+    border-color var(--motion-normal),
+    box-shadow var(--motion-normal);
+}
+.sakura-theme :is(button, select):disabled {
+  cursor: not-allowed;
+  transform: none;
+}
+.sakura-theme button[aria-busy='true'] {
+  cursor: progress;
+}
+.sakura-theme .nav-link > svg {
+  transition: transform var(--motion-fast) var(--motion-ease);
+}
+.sakura-theme .nav-dot {
+  transition: background-color var(--motion-normal);
+}
+.finding-record[data-recent='true'] {
+  border-inline-start: 3px solid #af6a98;
+}
+.studio-head {
+  transform-origin: 320px 259px;
+}
+.studio-body {
+  transform-origin: 318px 359px;
+}
+.studio-tail {
+  transform-origin: 405px 339px;
+}
+.studio-paw-left {
+  transform-origin: 270px 282px;
+}
+.studio-paw-right {
+  transform-origin: 391px 283px;
+}
+.studio-eyes {
+  transform-box: fill-box;
+  transform-origin: center;
+}
+
+@media (hover: hover) {
+  .sakura-theme :is(.panel, .metric-card):hover {
+    border-color: #bd8daf;
+  }
+  .motion-toggle:hover {
+    background: #f9d9eb;
+  }
+  .motion-toggle-compact:hover {
+    background: #ffffff1f;
+  }
+}
+@media (prefers-reduced-motion: no-preference) {
+  .sakura-theme[data-motion='on'] .workspace-page {
+    animation: workspace-arrive var(--motion-normal) var(--motion-ease) both;
+  }
+  .sakura-theme[data-motion='on'] .sakura-hero::before {
+    animation: workspace-light 20s ease-in-out infinite;
+  }
+  .sakura-theme[data-motion='on']
+    :is(.run-result, .scenario-feedback, .error-banner, .workspace-notice) {
+    animation: feedback-arrive var(--motion-normal) var(--motion-ease) both;
+  }
+  .sakura-theme[data-motion='on'] .finding-record:nth-child(-n + 4) {
+    animation: feedback-arrive var(--motion-normal) var(--motion-ease) both;
+  }
+  .sakura-theme[data-motion='on'] .finding-list[data-filter='all'] {
+    animation: filter-all var(--motion-fast) ease-out;
+  }
+  .sakura-theme[data-motion='on'] .finding-list[data-filter='pending'] {
+    animation: filter-pending var(--motion-fast) ease-out;
+  }
+  .sakura-theme[data-motion='on'] .finding-list[data-filter='reviewed'] {
+    animation: filter-reviewed var(--motion-fast) ease-out;
+  }
+  .sakura-theme[data-motion='on'] :is(.review-reviewed, .review-pending, .status-badge) {
+    animation: feedback-arrive var(--motion-fast) ease-out;
+  }
+  .sakura-theme[data-motion='on'] .status-badge.loading .status-dot {
+    background: transparent;
+    border: 2px solid currentColor;
+    border-right-color: transparent;
+    animation: spin 1.2s linear infinite;
+  }
+  .sakura-theme[data-motion='on'] button[aria-busy='true'] > svg {
+    animation: spin 1.6s linear infinite;
+  }
+  .sakura-theme[data-motion='on'] .nav-link.active > svg {
+    animation: nav-settle var(--motion-normal) ease-out;
+  }
+  .sakura-theme[data-motion='on'] .studio-head {
+    animation: studio-groove 3.6s ease-in-out infinite;
+  }
+  .sakura-theme[data-motion='on'] .studio-body {
+    animation: studio-breathe 8s ease-in-out infinite;
+  }
+  .sakura-theme[data-motion='on'] .studio-tail {
+    animation: studio-tail 12s ease-in-out infinite;
+  }
+  .sakura-theme[data-motion='on'] .studio-paw-left {
+    animation: studio-type-left 4.8s ease-in-out infinite;
+  }
+  .sakura-theme[data-motion='on'] .studio-paw-right {
+    animation: studio-type-right 4.8s ease-in-out infinite;
+  }
+  .sakura-theme[data-motion='on'] .studio-eyes {
+    animation: mochi-blink 12.7s linear infinite;
+  }
+  .sakura-theme[data-motion='on'] .studio-note {
+    animation: studio-music 7.2s ease-in-out infinite;
+  }
+  .sakura-theme[data-motion='on'] .studio-note-two {
+    animation-delay: -3.6s;
+  }
+  .sakura-theme[data-motion='on'] .studio-steam {
+    animation: studio-steam 9s ease-in-out infinite;
+  }
+  /* Replace the older introductory sparkle with an occasional quiet change. */
+  .sakura-theme .studio-sparkles {
+    animation: none;
+  }
+  @media (hover: hover) {
+    .sakura-theme[data-motion='on']
+      :is(.button, .sakura-button, .motion-toggle):not(:disabled):hover {
+      transform: translateY(-1px);
+    }
+    .sakura-theme[data-motion='on'] .nav-link:hover > svg {
+      transform: translateX(2px);
+    }
+  }
+  .sakura-theme[data-motion='on']
+    :is(.button, .sakura-button, .motion-toggle):not(:disabled):active {
+    transform: translateY(1px);
+  }
+  @media (max-width: 700px) {
+    .sakura-theme[data-motion='on'] .sidebar.is-open {
+      animation: workspace-arrive var(--motion-normal) var(--motion-ease);
+    }
+    .sakura-theme[data-motion='on'] :is(.studio-steam, .studio-note-two) {
+      animation: none;
+    }
+  }
+}
+
+@keyframes workspace-arrive {
+  from {
+    opacity: 0.7;
+    transform: translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+@keyframes feedback-arrive {
+  from {
+    opacity: 0.45;
+  }
+  to {
+    opacity: 1;
+  }
+}
+@keyframes filter-all {
+  from {
+    opacity: 0.65;
+  }
+  to {
+    opacity: 1;
+  }
+}
+@keyframes filter-pending {
+  from {
+    opacity: 0.65;
+  }
+  to {
+    opacity: 1;
+  }
+}
+@keyframes filter-reviewed {
+  from {
+    opacity: 0.65;
+  }
+  to {
+    opacity: 1;
+  }
+}
+@keyframes nav-settle {
+  from {
+    transform: translateX(-2px);
+  }
+  to {
+    transform: none;
+  }
+}
+@keyframes workspace-light {
+  0%,
+  100% {
+    opacity: 0.1;
+  }
+  50% {
+    opacity: 0.17;
+  }
+}
+@keyframes studio-groove {
+  0%,
+  100% {
+    transform: rotate(-1deg);
+  }
+  50% {
+    transform: rotate(1.3deg) translateY(1px);
+  }
+}
+@keyframes studio-breathe {
+  0%,
+  100% {
+    transform: scaleY(1);
+  }
+  50% {
+    transform: scaleY(1.007);
+  }
+}
+@keyframes studio-tail {
+  0%,
+  30%,
+  100% {
+    transform: rotate(0);
+  }
+  65% {
+    transform: rotate(-2deg);
+  }
+}
+/* Alternating taps, then a resting beat. Arms stay attached at their shoulders. */
+@keyframes studio-type-left {
+  0%,
+  12%,
+  24%,
+  36%,
+  48%,
+  60%,
+  100% {
+    transform: rotate(0);
+  }
+  6%,
+  18%,
+  30%,
+  42%,
+  54% {
+    transform: rotate(-2.5deg);
+  }
+}
+@keyframes studio-type-right {
+  0%,
+  6%,
+  18%,
+  30%,
+  42%,
+  54%,
+  66%,
+  100% {
+    transform: rotate(0);
+  }
+  12%,
+  24%,
+  36%,
+  48%,
+  60% {
+    transform: rotate(2.5deg);
+  }
+}
+@keyframes studio-music {
+  0%,
+  100% {
+    opacity: 0.35;
+    transform: translateY(2px) rotate(0);
+  }
+  50% {
+    opacity: 0.85;
+    transform: translateY(-5px) rotate(2deg);
+  }
+}
+@keyframes studio-steam {
+  0%,
+  100% {
+    opacity: 0.45;
+    transform: translateY(0);
+  }
+  50% {
+    opacity: 0.7;
+    transform: translateY(-3px);
+  }
+}
+
+.sakura-theme[data-motion='off'] *,
+.sakura-theme[data-motion='off'] *::before,
+.sakura-theme[data-motion='off'] *::after {
+  animation: none !important;
+  transition: none !important;
+}
+.sakura-theme[data-motion='off'] :is(.studio-moving, .mochi-animated) {
+  transform: none;
+}
+@media (prefers-reduced-motion: reduce) {
+  .sakura-theme *,
+  .sakura-theme *::before,
+  .sakura-theme *::after {
+    animation: none !important;
+    transition: none !important;
+  }
+  .sakura-theme :is(.studio-moving, .mochi-animated) {
+    transform: none;
+  }
+}
+@media (max-width: 700px) {
+  .motion-toggle-compact {
+    padding: 8px;
+  }
+  .motion-toggle-compact span {
+    display: none;
+  }
+  .topbar .motion-preference {
+    max-width: 90px;
+    font-size: 10px;
+  }
+}
