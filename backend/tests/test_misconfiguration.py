@@ -37,7 +37,7 @@ async def test_mixed_checks_persist_review_and_report(tmp_path):
         assert (await client.patch('/api/findings/'+finding['id'], json={'review_status':'reviewed'}, headers=HEADERS)).status_code == 200
         for path in ['/lab/error', '/lab/status', '/lab/profiles/alice']:
             assert (await client.get(path)).status_code == 404
-        assert (await client.get('/api/health')).json()['ai']['status'] == 'not_implemented'
+        assert (await client.get('/api/health')).json()['ai']['status'] == 'disabled'
     async with AsyncClient(transport=ASGITransport(app=create_app(database)), base_url='http://127.0.0.1') as client:
         state = (await client.get('/api/workspace')).json()
         assert len(state['runs']) == 6

@@ -12,6 +12,9 @@ import { MotionToggle } from '../components/WorkspaceMotion'
 import SakuraBloom from '../components/SakuraBloom'
 import Panel from '../components/Panel'
 import { useScrollReveal } from '../useScrollReveal'
+import MochiAnalysis from '../components/MochiAnalysis'
+import type { AIState } from '../useAI'
+import type { WorkspaceState } from '../useWorkspace'
 
 const steps = [
   {
@@ -33,7 +36,7 @@ const steps = [
   },
 ]
 
-export default function MochiAI() {
+export default function MochiAI({ ai, workspace }: { ai: AIState; workspace: WorkspaceState }) {
   const revealScope = useScrollReveal()
   return (
     <div className="mochi-page workspace-page" ref={revealScope}>
@@ -41,7 +44,7 @@ export default function MochiAI() {
         <SakuraBloom className="hero-blossom" />
         <div className="sakura-hero-copy" data-reveal="fade-up">
           <span className="sakura-label">
-            <Sparkles size={15} /> CONHEÇA SUA FUTURA ASSISTENTE
+            <Sparkles size={15} /> SUA COMPANHEIRA DE EVIDÊNCIAS
           </span>
           <h2 id="mochi-introduction">
             Oi, eu sou a <span>Mochi.</span>
@@ -58,18 +61,34 @@ export default function MochiAI() {
               <LockKeyhole size={16} />
             </span>
             <div>
-              <strong>IA indisponível</strong>
-              <span>Integração ainda não implementada</span>
+              <strong>
+                {ai.pending
+                  ? 'Analisando evidências'
+                  : ai.status?.status === 'configured'
+                    ? 'IA configurada localmente'
+                    : 'IA indisponível'}
+              </strong>
+              <span>
+                {ai.pending
+                  ? 'Requisição em andamento'
+                  : ai.result?.provider === 'openai'
+                    ? 'Resposta recebida nesta sessão · revise as evidências'
+                    : 'Fase 1 · integração implementada, validação real pendente'}
+              </span>
             </div>
           </div>
         </div>
         <figure className="sakura-studio" data-reveal="scale">
-          <MochiStudio />
+          <MochiStudio analyzing={ai.pending} />
           <figcaption>
             <PawPrint size={13} /> MOCHI’S CORNER <span>FEITO DE CURIOSIDADE & CUIDADO</span>
           </figcaption>
           <div className="studio-controls">
-            <p>Música imaginária, patinhas no teclado. Cena decorativa, sem áudio ou IA ativa.</p>
+            <p>
+              {ai.pending
+                ? 'Mochi concentrada: uma requisição de análise está em andamento.'
+                : 'Música imaginária e digitação decorativa. Esta animação não indica processamento de IA.'}
+            </p>
             <MotionToggle />
           </div>
         </figure>
@@ -80,11 +99,12 @@ export default function MochiAI() {
           <span />
         </div>
       </section>
+      <MochiAnalysis ai={ai} workspace={workspace} />
       <div className="mochi-panels">
         <Panel
           className="process-panel"
           reveal={false}
-          title="Como a análise vai funcionar"
+          title="Como a análise funciona"
           eyebrow="IA COM CONTEXTO"
           action={
             <span className="panel-seal" aria-hidden="true">
@@ -128,13 +148,17 @@ export default function MochiAI() {
               <LockKeyhole size={24} strokeWidth={1.7} />
             </span>
             <div>
-              <h3>Nenhum provedor de IA está conectado.</h3>
-              <p>Esta versão não envia dados a modelos externos e não precisa de chave de API.</p>
+              <h3>Configuração não é prova de conexão.</h3>
+              <p>
+                A integração fica desativada por padrão. Consultar o estado local não faz chamadas à
+                OpenAI.
+              </p>
             </div>
           </div>
           <p className="trust-description">
-            O laboratório já produz evidências e relatórios sem IA. A integração com um modelo será
-            feita no backend. Uma API paga só será utilizada com autorização.
+            O laboratório continua produzindo evidências e Markdown sem IA. Somente uma análise
+            solicitada, com a integração habilitada e configurada no backend, envia fatos
+            minimizados ao provedor e pode gerar custo. Nenhuma chave é enviada ao frontend.
           </p>
           <div className="trust-action">
             <a className="sakura-button" href="#lab">

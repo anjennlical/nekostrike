@@ -220,7 +220,11 @@ export default function Overview({
               <strong>Mochi AI</strong>
               <small>Análise assistida por evidências</small>
             </div>
-            <span className="service-state">IA indisponível</span>
+            <span className="service-state">
+              {connection.status === 'online' && connection.data.ai.status === 'configured'
+                ? 'IA configurada'
+                : 'IA indisponível'}
+            </span>
           </div>
           <div className="local-notice">
             <LockKeyhole size={16} />

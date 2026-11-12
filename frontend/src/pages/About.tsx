@@ -130,8 +130,8 @@ export default function About({ replayIntro }: { replayIntro: () => void }) {
             animações e falas locais não são análises por IA.
           </p>
           <p>
-            Quando houver integração validada, ela poderá ajudar a interpretar evidências. Hoje,{' '}
-            <strong>IA indisponível</strong>.
+            A integração da Mochi está implementada e desativada por padrão. A validação com um
+            provedor real ainda está pendente. Confira a configuração na página Mochi AI.
           </p>
           <a className="text-link" href="#mochi">
             Visitar o cantinho da Mochi <ArrowRight size={16} />
@@ -179,7 +179,7 @@ export default function About({ replayIntro }: { replayIntro: () => void }) {
               ],
               [
                 'Relatórios e IA',
-                'Markdown determinístico disponível. PDF no produto e provedor de IA ainda não implementados.',
+                'Markdown determinístico disponível. Mochi AI opcional, com validação real pendente. PDF no produto ainda não implementado.',
               ],
             ].map(([title, text], index) => (
               <div key={title} data-reveal="fade-up" data-reveal-index={index}>

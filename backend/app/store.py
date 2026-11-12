@@ -75,3 +75,25 @@ class Store:
                 return result.rowcount == 1
         finally:
             connection.close()
+
+    def analysis_source(self, finding_id: str, max_bytes: int) -> dict | None:
+        """Read only the requested finding, bounded before loading JSON into Python."""
+        connection = self.connect()
+        try:
+            with connection:
+                connection.execute("BEGIN")
+                size = connection.execute("""SELECT length(CAST(f.details AS BLOB)) +
+                    length(CAST(r.evidence AS BLOB)) FROM findings f JOIN runs r ON r.id=f.run_id
+                    WHERE f.id=?""", (finding_id,)).fetchone()
+                if size is None:
+                    return None
+                if size[0] > max_bytes:
+                    raise OverflowError("analysis input too large")
+                row = connection.execute("""SELECT f.details, r.* FROM findings f
+                    JOIN runs r ON r.id=f.run_id WHERE f.id=?""", (finding_id,)).fetchone()
+                run = dict(row)
+                details = json.loads(run.pop("details"))
+                run["evidence"] = json.loads(run["evidence"])
+                return {"finding": details, "run": run}
+        finally:
+            connection.close()

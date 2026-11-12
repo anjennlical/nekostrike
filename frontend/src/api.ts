@@ -1,3 +1,6 @@
+import { aiStatuses } from './ai-api.ts'
+import type { AIStatus } from './ai-api'
+
 export type Health = {
   status: 'ok'
   service: 'nekostrike-api'
@@ -5,7 +8,7 @@ export type Health = {
   environment: 'local'
   timestamp: string
   lab: { status: 'ready'; checks?: ('bola' | 'data_exposure' | 'security_misconfiguration')[] }
-  ai: { status: 'not_implemented' }
+  ai: { status: 'not_implemented' | AIStatus['status'] }
 }
 
 export function parseHealth(value: unknown): Health {
@@ -24,7 +27,8 @@ export function parseHealth(value: unknown): Health {
         !data.lab.checks.every((check) =>
           ['bola', 'data_exposure', 'security_misconfiguration'].includes(check),
         ))) ||
-    data.ai?.status !== 'not_implemented'
+    (data.ai?.status !== 'not_implemented' &&
+      !aiStatuses.includes(data.ai?.status as AIStatus['status']))
   )
     throw new Error('A resposta não corresponde ao contrato do NekoStrike.')
   return data as Health

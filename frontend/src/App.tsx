@@ -30,6 +30,7 @@ import Notice from './components/Notice'
 import type { CheckType } from './workspace-api'
 import { useHealth } from './useHealth'
 import { useWorkspace } from './useWorkspace'
+import { useAI } from './useAI'
 import { MotionToggle, useWorkspaceMotion } from './components/WorkspaceMotion'
 
 const pages = [
@@ -92,6 +93,7 @@ export default function App() {
   const navigation = useRef<HTMLElement>(null)
   const { connection, refresh, lastSuccess } = useHealth()
   const workspace = useWorkspace()
+  const ai = useAI()
   const selected = pages.find((item) => item.id === page)!
   useEffect(() => {
     if (menuOpen) {
@@ -373,7 +375,7 @@ export default function App() {
             <Findings workspace={workspace} filter={findingFilter} setFilter={setFindingFilter} />
           )}
 
-          {page === 'mochi' && <MochiAI />}
+          {page === 'mochi' && <MochiAI workspace={workspace} ai={ai} />}
           {page === 'about' && <About replayIntro={replayIntro} />}
           <footer className="page-footer">
             <span>

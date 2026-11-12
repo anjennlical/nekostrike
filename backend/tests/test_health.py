@@ -29,7 +29,7 @@ async def test_health_contract_and_honest_capabilities(client):
     assert data["environment"] == "local" and data["version"] == "0.4.0"
     assert data["lab"]["checks"] == ["bola", "data_exposure", "security_misconfiguration"]
     assert data["lab"]["status"] == "ready"
-    assert data["ai"]["status"] == "not_implemented"
+    assert data["ai"]["status"] == "disabled"
     assert abs((datetime.now(timezone.utc) - datetime.fromisoformat(data["timestamp"])).total_seconds()) < 10
     assert response.headers["cache-control"] == "no-store"
 

@@ -14,6 +14,11 @@ from .exposure import check_exposure
 from .misconfiguration import check_misconfiguration
 from .report import markdown_report, OWASP
 from .store import Store
+from .ai.config import AISettings, load_settings
+from .ai.provider import AIError, Provider
+from .ai.schemas import AnalyzeInput, AnalysisResult, AIStatus
+from .ai.service import AIService
+from .ai.body_limit import AnalyzeBodyLimit
 
 ORIGINS = ["http://127.0.0.1:5173", "http://localhost:5173",
            "http://127.0.0.1:4173", "http://localhost:4173"]
@@ -25,7 +30,7 @@ class LabCapability(BaseModel):
 
 
 class AICapability(BaseModel):
-    status: Literal["not_implemented"] = "not_implemented"
+    status: Literal["disabled", "missing_key", "missing_model", "invalid_config", "configured"] = "disabled"
 
 
 class HealthResponse(BaseModel):
@@ -60,15 +65,18 @@ def require_workspace(request: Request):
         raise HTTPException(415, "Envie application/json")
 
 
-def create_app(db_path: Path | None = None) -> FastAPI:
+def create_app(db_path: Path | None = None, *, ai_settings: AISettings | None = None,
+               ai_provider: Provider | None = None) -> FastAPI:
     store = Store(db_path or Path(__file__).resolve().parents[1] / "data" / "nekostrike.db")
+    ai = AIService(store, ai_settings if ai_settings is not None else load_settings(), ai_provider)
     app = FastAPI(title="NekoStrike API", version="0.4.0",
-                  description="Three isolated local checks, evidence and deterministic reports. No AI provider.",
+                  description="Three isolated local checks and optional, explicitly configured AI explanations.",
                   docs_url="/api/docs", redoc_url=None, openapi_url="/api/openapi.json")
     app.add_middleware(TrustedHostMiddleware, allowed_hosts=["127.0.0.1", "localhost"])
     app.add_middleware(CORSMiddleware, allow_origins=ORIGINS, allow_credentials=False,
                        allow_methods=["GET", "POST", "PATCH"],
                        allow_headers=["Accept", "Content-Type", "X-NekoStrike-Client"])
+    app.add_middleware(AnalyzeBodyLimit)
 
     @app.middleware("http")
     async def response_headers(request, call_next):
@@ -85,7 +93,19 @@ def create_app(db_path: Path | None = None) -> FastAPI:
     def health():
         return {"status": "ok", "service": "nekostrike-api", "version": "0.4.0",
                 "environment": "local", "timestamp": datetime.now(timezone.utc),
-                "lab": {"status": "ready", "checks": ["bola", "data_exposure", "security_misconfiguration"]}, "ai": {"status": "not_implemented"}}
+                "lab": {"status": "ready", "checks": ["bola", "data_exposure", "security_misconfiguration"]}, "ai": {"status": ai.settings.status}}
+
+    @app.get("/api/ai/status", response_model=AIStatus, tags=["Mochi AI"])
+    def ai_status():
+        return ai.status()
+
+    @app.post("/api/ai/analyze", response_model=AnalysisResult,
+              dependencies=[Depends(require_workspace)], tags=["Mochi AI"])
+    async def analyze(body: AnalyzeInput):
+        try:
+            return await ai.analyze(str(body.finding_id))
+        except AIError as exc:
+            raise HTTPException(exc.status, {"code": exc.code, "message": exc.message}) from None
 
     @app.get("/api/workspace", tags=["Evidence"])
     def workspace():

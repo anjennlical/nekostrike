@@ -1,0 +1,114 @@
+.sakura-theme .mochi-analysis {
+  margin-block: 1.25rem;
+  min-width: 0;
+}
+.mochi-analysis form {
+  display: grid;
+  gap: 0.8rem;
+  margin-top: 1.4rem;
+}
+.mochi-analysis label {
+  font-weight: 750;
+}
+.mochi-analysis select {
+  width: 100%;
+  min-width: 0;
+  max-width: 100%;
+  min-height: 48px;
+  padding: 0.7rem;
+  color: var(--text-main);
+  background: var(--surface-raised);
+  border: 1px solid var(--border-strong);
+  border-radius: 12px;
+  font: inherit;
+  text-overflow: ellipsis;
+}
+.mochi-analysis :is(button, select):focus-visible {
+  outline: 3px solid var(--focus-ring);
+  outline-offset: 4px;
+}
+.ai-config-row {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.8rem 1.2rem;
+}
+.ai-config-row > * {
+  min-width: 0;
+  max-width: 100%;
+}
+.mochi-analysis .ai-help {
+  color: var(--text-muted);
+  font-size: 0.85rem;
+  line-height: 1.65;
+}
+.mochi-analysis .sakura-button {
+  white-space: normal;
+  min-height: 44px;
+  text-align: center;
+}
+.mochi-analysis button:disabled {
+  opacity: 0.65;
+  cursor: not-allowed;
+  transform: none;
+}
+.ai-feedback:not(:empty),
+.ai-error,
+.ai-review-note {
+  padding: 1rem;
+  border: 1px solid var(--border-strong);
+  border-radius: 14px;
+  background: var(--surface-raised);
+  margin-block: 1rem;
+}
+.ai-result {
+  border-top: 1px solid var(--border-soft);
+  padding-top: 1.5rem;
+  margin-top: 1rem;
+  line-height: 1.75;
+  overflow-wrap: anywhere;
+}
+.ai-result-heading {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  color: var(--text-accent);
+}
+.ai-result h4 {
+  margin: 1.5rem 0 0.5rem;
+  color: var(--text-accent);
+}
+.ai-result ul {
+  padding-left: 1.3rem;
+}
+.ai-result li + li {
+  margin-top: 0.6rem;
+}
+.ai-evidence-list li span,
+.ai-evidence-list code {
+  display: block;
+  overflow-wrap: anywhere;
+  white-space: normal;
+}
+.ai-evidence-list code {
+  font-size: 0.78rem;
+}
+.mochi-studio[data-analyzing='true'] .studio-note {
+  display: none;
+}
+@media (prefers-reduced-motion: no-preference) {
+  .sakura-theme[data-motion='on'] .mochi-studio[data-analyzing='true'] .studio-head {
+    animation: none;
+    transform: rotate(2deg);
+  }
+  .sakura-theme[data-motion='on']
+    .mochi-studio[data-analyzing='true']
+    :is(.studio-paw-left, .studio-paw-right) {
+    animation-duration: 2.4s;
+  }
+}
+@media (max-width: 480px) {
+  .ai-config-row > .sakura-button {
+    width: 100%;
+  }
+}

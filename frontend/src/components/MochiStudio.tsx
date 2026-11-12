@@ -1,12 +1,13 @@
 import { useId } from 'react'
 
 /** Original vector scene. No reference image is embedded. */
-export default function MochiStudio() {
+export default function MochiStudio({ analyzing = false }: { analyzing?: boolean }) {
   const id = useId().replaceAll(':', '')
   const paint = (name: string) => `url(#${id}-${name})`
   return (
     <svg
       className="mochi-studio"
+      data-analyzing={analyzing ? 'true' : 'false'}
       viewBox="0 0 600 440"
       role="img"
       aria-labelledby={`${id}-title ${id}-desc`}
@@ -14,8 +15,10 @@ export default function MochiStudio() {
       <title id={`${id}-title`}>Mochi no seu cantinho de criação</title>
       <desc id={`${id}-desc`}>
         Gatinha creme com laço rosa, balançando a cabeça com fones e digitando em um notebook lilás.
-        Ao lado, uma caneca; pela janela, lua e cidade violeta. Cena decorativa, sem som ou
-        processamento de IA.
+        Ao lado, uma caneca; pela janela, lua e cidade violeta. Sem som.
+        {analyzing
+          ? 'Mochi concentrada enquanto a requisição está em andamento.'
+          : 'Cena decorativa; a animação não indica processamento de IA.'}
       </desc>
       <defs>
         <linearGradient id={`${id}-sky`} x2="0.2" y2="1">
