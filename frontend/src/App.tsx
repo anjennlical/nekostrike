@@ -2,7 +2,8 @@ import Overview from './pages/Overview'
 import SecurityLab from './pages/SecurityLab'
 import Findings from './pages/Findings'
 import MochiAI from './pages/MochiAI'
-import { useEffect, useRef, useState } from 'react'
+import About from './pages/About'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import {
   Activity,
   ArrowUpRight,
@@ -17,8 +18,16 @@ import {
   ShieldCheck,
   Sparkles,
   X,
+  BookHeart,
+  Settings2,
+  ArrowUp,
 } from 'lucide-react'
-import StatusBadge from './components/StatusBadge'
+import SystemHeartbeat from './components/SystemHeartbeat'
+import { ThemeSelect } from './components/ThemeProvider'
+import Dialog from './components/Dialog'
+import CinematicIntro from './components/CinematicIntro'
+import Notice from './components/Notice'
+import type { CheckType } from './workspace-api'
 import { useHealth } from './useHealth'
 import { useWorkspace } from './useWorkspace'
 import { MotionToggle, useWorkspaceMotion } from './components/WorkspaceMotion'
@@ -48,6 +57,12 @@ const pages = [
     icon: Sparkles,
     caption: 'Uma parceira para transformar evidências em clareza.',
   },
+  {
+    id: 'about',
+    label: 'Conheça o NekoStrike',
+    icon: BookHeart,
+    caption: 'A história, o propósito e os limites do nosso workspace.',
+  },
 ] as const
 type Page = (typeof pages)[number]['id']
 function currentPage(): Page {
@@ -59,11 +74,53 @@ export default function App() {
   const motion = useWorkspaceMotion()
   const [page, setPage] = useState<Page>(currentPage)
   const [menuOpen, setMenuOpen] = useState(false)
+  const [menuPresent, setMenuPresent] = useState(false)
+  const [preferencesOpen, setPreferencesOpen] = useState(false)
+  const [introOpen, setIntroOpen] = useState(false)
+  const [introAutomatic, setIntroAutomatic] = useState(true)
+  const [showTop, setShowTop] = useState(false)
+  const [checkType, setCheckType] = useState<CheckType>('bola')
+  const [findingFilter, setFindingFilter] = useState('all')
+  const introChecked = useRef(false)
+  const replayPending = useRef(false)
+  const closeIntro = useCallback(() => setIntroOpen(false), [])
+  const replayIntro = () => {
+    setIntroAutomatic(false)
+    setIntroOpen(true)
+  }
   const menuButton = useRef<HTMLButtonElement>(null)
   const navigation = useRef<HTMLElement>(null)
-  const { connection, refresh } = useHealth()
+  const { connection, refresh, lastSuccess } = useHealth()
   const workspace = useWorkspace()
   const selected = pages.find((item) => item.id === page)!
+  useEffect(() => {
+    if (menuOpen) {
+      setMenuPresent(true)
+      return
+    }
+    if (!motion.enabled) {
+      setMenuPresent(false)
+      return
+    }
+    const timer = setTimeout(() => setMenuPresent(false), 180)
+    return () => clearTimeout(timer)
+  }, [menuOpen, motion.enabled])
+  useEffect(() => {
+    if (introChecked.current) return
+    introChecked.current = true
+    try {
+      const seen = sessionStorage.getItem('nekostrike-intro-seen')
+      sessionStorage.setItem('nekostrike-intro-seen', 'yes')
+      if (!seen && motion.enabled) setIntroOpen(true)
+    } catch {
+      /* Storage blocked: skip automatic intro, keep manual replay. */
+    }
+  }, [motion.enabled])
+  useEffect(() => {
+    const scroll = () => setShowTop(window.scrollY > 500)
+    window.addEventListener('scroll', scroll, { passive: true })
+    return () => window.removeEventListener('scroll', scroll)
+  }, [])
   useEffect(() => {
     const handleHash = () => {
       setPage(currentPage())
@@ -77,9 +134,9 @@ export default function App() {
     document.title = `${selected.label} · NekoStrike`
   }, [selected.label])
   useEffect(() => {
-    if (menuOpen)
+    if (menuOpen && menuPresent)
       navigation.current?.querySelector<HTMLAnchorElement>('[aria-current="page"]')?.focus()
-  }, [menuOpen])
+  }, [menuOpen, menuPresent])
   useEffect(() => {
     const close = (event: KeyboardEvent) => {
       if (event.key === 'Escape' && menuOpen) {
@@ -104,12 +161,12 @@ export default function App() {
       {connection.status === 'loading' ? 'Verificando…' : 'Verificar conexão'}
     </button>
   )
-  const checkedAt = connection.data
+  const checkedAt = lastSuccess
     ? new Intl.DateTimeFormat('pt-BR', {
         hour: '2-digit',
         minute: '2-digit',
         second: '2-digit',
-      }).format(new Date(connection.data.timestamp))
+      }).format(new Date(lastSuccess))
     : null
 
   return (
@@ -124,7 +181,11 @@ export default function App() {
       >
         Pular para o conteúdo
       </a>
-      <aside className={`sidebar ${menuOpen ? 'is-open' : ''}`}>
+      <aside
+        className={`sidebar ${menuPresent ? 'is-open' : ''}`}
+        data-closing={(menuPresent && !menuOpen) || undefined}
+        inert={(menuPresent && !menuOpen) || undefined}
+      >
         <a href="#overview" className="brand" aria-label="NekoStrike, início">
           <span className="brand-mark">
             <PawPrint size={23} strokeWidth={1.8} />
@@ -143,26 +204,41 @@ export default function App() {
         </div>
         <p className="nav-heading">WORKSPACE</p>
         <nav id="workspace-navigation" ref={navigation} aria-label="Navegação principal">
-          {pages.map(({ id, label, icon: Icon }) => (
-            <a
-              href={`#${id}`}
-              key={id}
-              className={`nav-link ${page === id ? 'active' : ''}`}
-              aria-current={page === id ? 'page' : undefined}
-              onClick={() => {
-                if (menuOpen) document.getElementById('main-content')?.focus()
-                setMenuOpen(false)
-              }}
-            >
-              <Icon size={19} />
-              <span>{label}</span>
-              {id === 'mochi' ? (
-                <span className="tiny-tag">AI</span>
-              ) : (
-                page === id && <span className="nav-dot" />
-              )}
-            </a>
-          ))}
+          {pages
+            .filter((item) => item.id !== 'about')
+            .map(({ id, label, icon: Icon }) => (
+              <a
+                href={`#${id}`}
+                key={id}
+                className={`nav-link ${page === id ? 'active' : ''}`}
+                aria-current={page === id ? 'page' : undefined}
+                onClick={() => {
+                  if (menuOpen) document.getElementById('main-content')?.focus()
+                  setMenuOpen(false)
+                }}
+              >
+                <Icon size={19} />
+                <span>{label}</span>
+                {id === 'mochi' ? (
+                  <span className="tiny-tag">AI</span>
+                ) : (
+                  page === id && <span className="nav-dot" />
+                )}
+              </a>
+            ))}
+          <p className="nav-heading nav-help-heading">AJUDA & SOBRE</p>
+          <a
+            className={`nav-link nav-about ${page === 'about' ? 'active' : ''}`}
+            href="#about"
+            aria-current={page === 'about' ? 'page' : undefined}
+            onClick={() => {
+              if (menuOpen) document.getElementById('main-content')?.focus()
+              setMenuOpen(false)
+            }}
+          >
+            <BookHeart size={19} />
+            <span>Conheça o NekoStrike</span>
+          </a>
         </nav>
         <div className="sidebar-bottom">
           <div className="mochi-note">
@@ -208,6 +284,15 @@ export default function App() {
           </div>
           <div className="topbar-right">
             <MotionToggle compact />
+            <ThemeSelect compact />
+            <button
+              type="button"
+              className="preferences-button"
+              aria-label="Abrir preferências"
+              onClick={() => setPreferencesOpen(true)}
+            >
+              <Settings2 size={18} />
+            </button>
             <span className="local-pill">
               <LockKeyhole size={12} /> AMBIENTE LOCAL
             </span>
@@ -228,11 +313,7 @@ export default function App() {
               </h1>
               <p>{selected.caption}</p>
             </div>
-            <div className="connection-summary" aria-live="polite">
-              <span className="backend-label">BACKEND LOCAL</span>
-              <StatusBadge status={connection.status} />
-              <small>{checkedAt ? `Verificado às ${checkedAt}` : 'Health check do backend'}</small>
-            </div>
+            <SystemHeartbeat connection={connection} checkedAt={checkedAt} refresh={refresh} />
           </div>
           {connection.status === 'offline' && (
             <div className="error-banner" role="alert">
@@ -270,10 +351,7 @@ export default function App() {
               </div>
             )}
             {workspace.notice && !workspace.error && (
-              <p className="workspace-notice">
-                <ShieldCheck size={17} />
-                {workspace.notice}
-              </p>
+              <Notice key={workspace.notice} message={workspace.notice} />
             )}
           </div>
           {page === 'overview' && (
@@ -286,12 +364,17 @@ export default function App() {
               verify={verify}
               checkedAt={checkedAt}
               workspace={workspace}
+              checkType={checkType}
+              setCheckType={setCheckType}
             />
           )}
 
-          {page === 'findings' && <Findings workspace={workspace} />}
+          {page === 'findings' && (
+            <Findings workspace={workspace} filter={findingFilter} setFilter={setFindingFilter} />
+          )}
 
           {page === 'mochi' && <MochiAI />}
+          {page === 'about' && <About replayIntro={replayIntro} />}
           <footer className="page-footer">
             <span>
               <PawPrint size={13} /> Feito com cuidado. Construído com evidências.
@@ -299,7 +382,81 @@ export default function App() {
             <span>NekoStrike · AI-Assisted Offensive Security</span>
           </footer>
         </main>
+        {showTop && (
+          <button
+            type="button"
+            className="scroll-top"
+            aria-label="Voltar ao topo"
+            onClick={() => {
+              window.scrollTo({ top: 0, behavior: motion.enabled ? 'smooth' : 'instant' })
+              document.getElementById('main-content')?.focus({ preventScroll: true })
+            }}
+          >
+            <ArrowUp size={18} />
+          </button>
+        )}
       </div>
+      <Dialog
+        open={preferencesOpen}
+        titleId="preferences-title"
+        onClose={() => setPreferencesOpen(false)}
+        onAfterClose={() => {
+          if (replayPending.current) {
+            replayPending.current = false
+            replayIntro()
+          }
+        }}
+      >
+        <div className="dialog-content">
+          <div className="dialog-heading">
+            <div>
+              <p className="eyebrow">SEU WORKSPACE, SEU RITMO</p>
+              <h2 id="preferences-title">Preferências</h2>
+            </div>
+            <button
+              type="button"
+              className="dialog-close"
+              aria-label="Fechar preferências"
+              onClick={() => setPreferencesOpen(false)}
+              autoFocus
+            >
+              <X size={19} />
+            </button>
+          </div>
+          <h3>Aparência</h3>
+          <p>
+            Sakura Daydream traz rosa claro. Midnight Sakura combina ameixa e lavanda. Sistema
+            acompanha a preferência do dispositivo.
+          </p>
+          <ThemeSelect />
+          <h3>Movimento</h3>
+          <p>
+            A pausa vale em todas as páginas desta sessão. A preferência de movimento reduzido do
+            sistema sempre prevalece.
+          </p>
+          <MotionToggle />
+          <h3>Abertura</h3>
+          <p>
+            Uma apresentação visual curta, sem relação com o carregamento de dados. Escape ou Pular
+            introdução encerram a sequência.
+          </p>
+          <button
+            type="button"
+            className="button secondary"
+            disabled={!motion.enabled}
+            onClick={() => {
+              replayPending.current = true
+              setPreferencesOpen(false)
+            }}
+          >
+            Rever introdução
+          </button>
+          {!motion.enabled && (
+            <p>Reprodução desativada enquanto o movimento estiver reduzido ou pausado.</p>
+          )}
+        </div>
+      </Dialog>
+      <CinematicIntro open={introOpen} onClose={closeIntro} automatic={introAutomatic} />
     </div>
   )
 }

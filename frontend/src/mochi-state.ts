@@ -2,7 +2,7 @@ import type { Run } from './workspace-api'
 
 export type MochiEmotion = 'idle' | 'happy' | 'thinking' | 'success' | 'warning' | 'error'
 export type MochiSignals = {
-  connection: 'loading' | 'online' | 'offline'
+  connection: 'unknown' | 'loading' | 'online' | 'offline'
   busy: string | null
   loading: boolean
   error: string | null

@@ -10,6 +10,7 @@ import {
   ScanLine,
   Shield,
   Sparkles,
+  BookHeart,
 } from 'lucide-react'
 import MochiMascot from '../components/MochiMascot'
 import SakuraBloom from '../components/SakuraBloom'
@@ -52,6 +53,9 @@ export default function Overview({
             </a>
             {verify}
           </div>
+          <a className="text-link about-entry" href="#about">
+            <BookHeart size={16} /> Conheça o NekoStrike
+          </a>
         </div>
         <div className="overview-mascot">
           <MochiMascot
@@ -182,7 +186,9 @@ export default function Overview({
                 ? 'Online'
                 : connection.status === 'loading'
                   ? 'Verificando'
-                  : 'Offline'}
+                  : connection.status === 'offline'
+                    ? 'Offline'
+                    : 'Não verificado'}
             </span>
           </div>
           <div className="service-row">

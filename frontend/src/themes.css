@@ -1,0 +1,300 @@
+/* Semantic palette: illustrations retain their authored SVG colors. */
+:root {
+  --surface-page: #2a1c30;
+  --surface-panel: #39273e;
+  --surface-raised: #49334f;
+  --surface-soft: #342239;
+  --surface-hero: #53334f;
+  --text-main: #fff0f8;
+  --text-muted: #dec7da;
+  --text-accent: #f5b5d1;
+  --border-soft: #785873;
+  --border-strong: #c58daf;
+  --focus-ring: #ffdda1;
+  --grid-line: #f5b5d107;
+  --atmosphere: #ad5c8b22;
+  --shadow-surface: 0 12px 32px #160d252b, inset 0 1px 0 #ffffff0a;
+  --ink-on-pink: #552442;
+  background: var(--surface-page);
+  color: var(--text-main);
+}
+:root[data-theme='light'] {
+  --surface-page: #fff8fc;
+  --surface-panel: #fffafd;
+  --surface-raised: #f6e7f1;
+  --surface-soft: #f9eef6;
+  --surface-hero: #f6dbea;
+  --text-main: #50324b;
+  --text-muted: #70536c;
+  --text-accent: #82335f;
+  --border-soft: #d8bbd1;
+  --border-strong: #a66d96;
+  --focus-ring: #80365e;
+  --grid-line: #8e51760a;
+  --atmosphere: #e9b5d53b;
+  --shadow-surface: 0 12px 32px #6e3e6b10, inset 0 1px 0 #ffffff;
+}
+.sakura-theme {
+  --surface-soft: #342239;
+  --surface-reading: var(--surface-panel);
+  --border-reading: var(--border-soft);
+  --text-support: var(--text-muted);
+  --sakura-night: var(--surface-page);
+  --sakura-ink: var(--text-main);
+  --sakura-muted: var(--text-muted);
+  --sakura-paper: var(--surface-panel);
+  --sakura-stroke: var(--border-strong);
+  --sakura-focus: var(--focus-ring);
+  --sakura-depth: var(--shadow-surface);
+  --sakura-glow: 0 0 0 1px #ee9ecb22, 0 0 26px #ee83bf0a;
+  --muted: var(--text-muted);
+  --border: var(--border-soft);
+  --plum: var(--text-main);
+  color: var(--text-main);
+  background-color: var(--surface-page);
+  background-image:
+    radial-gradient(ellipse at 90% 10%, var(--atmosphere), transparent 48%),
+    radial-gradient(ellipse at 20% 100%, var(--atmosphere), transparent 55%),
+    linear-gradient(var(--grid-line) 1px, transparent 1px),
+    linear-gradient(90deg, var(--grid-line) 1px, transparent 1px);
+  background-size:
+    auto,
+    auto,
+    28px 28px,
+    28px 28px;
+}
+:root[data-theme='light'] .sakura-theme {
+  --surface-soft: #f9eef6;
+}
+.sakura-theme .lab-check-picker {
+  background: var(--surface-panel);
+  border-color: var(--border-soft);
+}
+.sakura-theme :is(.lab-check-picker p, .evidence-expectation) {
+  color: var(--text-muted);
+}
+.sakura-theme .workspace-page summary:hover {
+  color: var(--text-accent);
+}
+.sakura-theme .workspace-page summary::marker {
+  color: var(--text-accent);
+}
+.sakura-theme .ai-availability {
+  color: var(--text-main);
+  background: var(--surface-raised);
+  border-color: var(--border-strong);
+}
+.sakura-theme .ai-availability strong {
+  color: var(--text-main);
+}
+.sakura-theme .ai-availability div > span {
+  color: var(--text-muted);
+}
+.sakura-theme ::selection {
+  background: #f5b5d1;
+  color: #50324b;
+}
+.sakura-theme .sidebar {
+  background: linear-gradient(155deg, var(--surface-raised), var(--surface-soft));
+  border-color: var(--border-soft);
+  scrollbar-color: var(--border-strong) var(--surface-soft);
+}
+.sakura-theme .topbar {
+  background: var(--surface-soft);
+  border-color: var(--border-soft);
+}
+.sakura-theme
+  :is(.brand, .workspace-label, .nav-link, .breadcrumb, .breadcrumb strong, .page-heading h1) {
+  color: var(--text-main);
+}
+.sakura-theme :is(.brand small, .nav-heading, .page-kicker, .heading-dot, .brand-mark) {
+  color: var(--text-accent);
+}
+.sakura-theme
+  :is(
+    .workspace-label small,
+    .workspace-label > svg,
+    .page-heading p,
+    .local-footer,
+    .local-footer small,
+    .version,
+    .version > span,
+    .page-footer
+  ) {
+  color: var(--text-muted);
+}
+.sakura-theme :is(.workspace-label, .brand-mark, .local-pill) {
+  background: var(--surface-panel);
+  border-color: var(--border-soft);
+}
+.sakura-theme .local-pill {
+  color: var(--text-accent);
+}
+.sakura-theme .nav-link.active {
+  color: var(--ink-on-pink);
+}
+.sakura-theme .nav-link:hover:not(.active) {
+  background: var(--surface-panel);
+  border-color: var(--border-soft);
+}
+.sakura-theme
+  :is(
+    .sakura-panel,
+    .metric-card,
+    .planned-test,
+    .finding-record,
+    .finding-fields > div,
+    .lab-scenarios article,
+    .run-result,
+    .evidence-item
+  ) {
+  background: linear-gradient(135deg, var(--surface-panel), var(--surface-soft));
+  border-color: var(--border-soft);
+  box-shadow: var(--shadow-surface);
+}
+.sakura-theme :is(.sakura-hero, .lab-banner, .findings-intro) {
+  background:
+    radial-gradient(ellipse at 15% 0, var(--atmosphere), transparent 60%),
+    linear-gradient(125deg, var(--surface-hero), var(--surface-panel));
+  border-color: var(--border-strong);
+}
+.sakura-theme
+  :is(
+    .sakura-hero h2,
+    .sakura-panel h2,
+    .lab-banner h2,
+    .sakura-steps h3,
+    .sakura-notice h3,
+    .service-row strong,
+    .local-notice strong,
+    .planned-test h3,
+    .finding-fields h3,
+    .empty-state h3,
+    .lab-scenarios h3,
+    .run-result h3,
+    .finding-record h3,
+    .remediation h4,
+    .report-export h3,
+    .recent-run strong,
+    .evidence-item summary
+  ) {
+  color: var(--text-main);
+}
+.sakura-theme
+  :is(
+    .sakura-hero-copy > p,
+    .metric-top,
+    .metric-card > p,
+    .service-row small,
+    .panel-description,
+    .lab-banner p,
+    .muted,
+    .check-list li,
+    .planned-test p,
+    .planned-test small,
+    .finding-fields p,
+    .empty-state p,
+    .panel-foot,
+    .lab-scenarios p,
+    .run-result > p,
+    .evidence-item > p,
+    .findings-toolbar > p,
+    .finding-record p,
+    .report-export p,
+    .recent-run small,
+    .trust-footnote,
+    .process-caption,
+    .studio-controls,
+    .studio-controls p,
+    .sakura-studio figcaption,
+    .service-state,
+    .motion-preference,
+    .topbar .motion-preference
+  ) {
+  color: var(--text-muted);
+}
+.sakura-theme
+  :is(
+    .sakura-hero h2 > span,
+    .sakura-panel .eyebrow,
+    .eyebrow,
+    .text-link,
+    .scenario-number,
+    .finding-detail > summary,
+    .finding-fields > div > span,
+    .notice-lock,
+    .check-list svg,
+    .hello-heart
+  ) {
+  color: var(--text-accent);
+}
+.sakura-theme
+  :is(.sakura-steps li, .sakura-notice, .local-notice, .endpoint, .metric-value span, .subtle-tag) {
+  background: var(--surface-raised);
+  border-color: var(--border-soft);
+  color: var(--text-main);
+  box-shadow: inset 0 1px 0 #ffffff08;
+}
+.sakura-theme :is(.sakura-label, .ai-unavailable, .service-state.online) {
+  background: var(--surface-soft);
+  color: var(--text-accent);
+  border-color: var(--border-strong);
+}
+.sakura-theme :is(.filter-label, .endpoint code) {
+  color: var(--text-main);
+}
+.sakura-theme :is(.filter-label select, .button.secondary, .motion-toggle, .icon-button) {
+  background: var(--surface-panel);
+  color: var(--text-main);
+  border-color: var(--border-strong);
+}
+.sakura-theme :is(.button.secondary, .motion-toggle, .icon-button):hover:not(:disabled) {
+  background: var(--surface-raised);
+}
+.sakura-theme
+  :is(
+    .panel-foot,
+    .service-row,
+    .finding-detail,
+    .recent-run,
+    .trust-footnote,
+    .page-footer,
+    .version
+  ) {
+  border-color: var(--border-soft);
+}
+.sakura-theme .service-state.offline {
+  color: var(--text-accent);
+}
+.sakura-theme .service-state.loading {
+  color: var(--text-muted);
+}
+.sakura-theme :is(.status-badge.unknown, .status-badge.loading) {
+  color: var(--text-main);
+  background: var(--surface-raised);
+  border-color: var(--border-strong);
+}
+.sakura-theme .status-confirmation {
+  color: inherit;
+}
+.sakura-theme .availability-symbol {
+  color: #67416f;
+}
+.sakura-theme :is(a, button, select, summary):focus-visible {
+  outline: 3px solid var(--focus-ring);
+  outline-offset: 4px;
+  box-shadow: 0 0 0 6px var(--surface-page);
+}
+.sakura-theme .sakura-hero h2 {
+  text-shadow: none;
+}
+.sakura-theme .sakura-hero h2 span {
+  text-shadow: none;
+}
+/* Dark code blocks and severity chips keep the same legible, semantic palette in both themes. */
+.sakura-theme .response-code {
+  color: #f4daef;
+}
+.sakura-theme .inline-error {
+  color: var(--text-accent);
+}

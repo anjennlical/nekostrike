@@ -4,17 +4,27 @@ import Panel from '../components/Panel'
 import EvidenceIllustration from '../components/EvidenceIllustration'
 import EvidenceView from '../components/EvidenceView'
 import type { WorkspaceState } from '../useWorkspace'
+import Notice from '../components/Notice'
 
-export default function Findings({ workspace }: { workspace: WorkspaceState }) {
-  const [filter, setFilter] = useState('all')
+export default function Findings({
+  workspace,
+  filter,
+  setFilter,
+}: {
+  workspace: WorkspaceState
+  filter: string
+  setFilter: (value: string) => void
+}) {
   const [exporting, setExporting] = useState(false)
   const [exportError, setExportError] = useState<string | null>(null)
+  const [exportNotice, setExportNotice] = useState<string | null>(null)
   const findings = workspace.data?.findings.filter(
     (finding) => filter === 'all' || finding.review_status === filter,
   )
   async function download() {
     setExporting(true)
     setExportError(null)
+    setExportNotice(null)
     try {
       const response = await fetch('/api/reports/markdown', {
         cache: 'no-store',
@@ -27,6 +37,9 @@ export default function Findings({ workspace }: { workspace: WorkspaceState }) {
       link.href = url
       link.download = 'nekostrike-report.md'
       link.click()
+      setExportNotice(
+        'Relatório recebido do backend; download solicitado ao navegador. Confira o arquivo na pasta Downloads.',
+      )
       window.setTimeout(() => URL.revokeObjectURL(url), 1000)
     } catch {
       setExportError('Não foi possível exportar. Verifique o backend e tente novamente.')
@@ -200,6 +213,7 @@ export default function Findings({ workspace }: { workspace: WorkspaceState }) {
             {exportError}
           </p>
         )}
+        {exportNotice && <Notice key={exportNotice} message={exportNotice} />}
       </Panel>
     </div>
   )

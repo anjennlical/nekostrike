@@ -13,13 +13,16 @@ export default function SecurityLab({
   verify,
   checkedAt,
   workspace,
+  checkType,
+  setCheckType,
 }: {
   connection: Connection
   verify: ReactNode
   checkedAt: string | null
   workspace: WorkspaceState
+  checkType: CheckType
+  setCheckType: (value: CheckType) => void
 }) {
-  const [checkType, setCheckType] = useState<CheckType>('bola')
   const selectedCheck = labChecks[checkType]
   const exposureReady = connection.data?.lab.checks?.includes('data_exposure') ?? false
   const configurationReady =
