@@ -1,3 +1,7 @@
+# Keep clean checkouts and git archive consistent with Prettier's LF default.
+* text=auto eol=lf
+*.cmd text eol=crlf
+
 # Preserve binary artifacts; never normalize PDF/image bytes on Windows.
 *.pdf binary
 *.png binary
