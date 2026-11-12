@@ -202,9 +202,9 @@
   line-height: 1.5;
 }
 .sakura-theme .service-state.online {
-  color: #35654a;
-  background: #e2eee4;
-  border: 1px solid #b7d2bf;
+  color: #693b60;
+  background: #f3dfee;
+  border: 1px solid #bd8caf;
   border-radius: 5px;
   padding: 3px 6px;
 }

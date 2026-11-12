@@ -207,13 +207,13 @@
   box-shadow: 0 0 0 3px #ffffff05;
 }
 .sakura-theme .status-badge.online {
-  color: #d6f8dd;
-  background: #263e37;
-  border-color: #95d9ae;
+  color: #ffe5f4;
+  background: #50304f;
+  border-color: #d99cbb;
 }
-.sakura-theme .status-badge.online .status-dot {
-  color: #9eecb7;
-  box-shadow: 0 0 8px #b2ffc166;
+.sakura-theme .status-confirmation {
+  flex-shrink: 0;
+  color: #ffe5f4;
 }
 .sakura-theme .status-badge.offline {
   background: #562d36;
