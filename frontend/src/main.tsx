@@ -11,6 +11,7 @@ import './mochi-motion.css'
 import './workspace-motion.css'
 import './themes.css'
 import './sakura-experience.css'
+import './scroll-reveal.css'
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>

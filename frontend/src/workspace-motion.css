@@ -116,27 +116,12 @@
   }
 }
 @media (prefers-reduced-motion: no-preference) {
-  .sakura-theme[data-motion='on'] .workspace-page {
-    animation: workspace-arrive var(--motion-normal) var(--motion-ease) both;
-  }
   .sakura-theme[data-motion='on'] .sakura-hero::before {
     animation: workspace-light 20s ease-in-out infinite;
   }
   .sakura-theme[data-motion='on']
     :is(.run-result, .scenario-feedback, .error-banner, .workspace-notice) {
     animation: feedback-arrive var(--motion-normal) var(--motion-ease) both;
-  }
-  .sakura-theme[data-motion='on'] .finding-record:nth-child(-n + 4) {
-    animation: feedback-arrive var(--motion-normal) var(--motion-ease) both;
-  }
-  .sakura-theme[data-motion='on'] .finding-list[data-filter='all'] {
-    animation: filter-all var(--motion-fast) ease-out;
-  }
-  .sakura-theme[data-motion='on'] .finding-list[data-filter='pending'] {
-    animation: filter-pending var(--motion-fast) ease-out;
-  }
-  .sakura-theme[data-motion='on'] .finding-list[data-filter='reviewed'] {
-    animation: filter-reviewed var(--motion-fast) ease-out;
   }
   .sakura-theme[data-motion='on'] :is(.review-reviewed, .review-pending, .status-badge) {
     animation: feedback-arrive var(--motion-fast) ease-out;

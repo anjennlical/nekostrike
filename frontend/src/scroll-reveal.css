@@ -1,0 +1,154 @@
+/* Visible by default: a missing observer, script failure or delayed callback cannot hide content. */
+.sakura-theme .workspace-page {
+  animation: none;
+}
+.sakura-theme [data-reveal] {
+  --reveal-duration: 540ms;
+}
+.sakura-theme [data-reveal='fade-in'] {
+  --reveal-duration: 400ms;
+}
+.sakura-theme [data-reveal-quick='true'] {
+  --reveal-duration: 180ms;
+}
+@media (prefers-reduced-motion: no-preference) {
+  .sakura-theme[data-motion='on'] [data-reveal-state='entered'] {
+    animation: reveal-up var(--reveal-duration) var(--motion-ease) var(--reveal-delay, 0ms) both;
+  }
+  .sakura-theme[data-motion='on'] [data-reveal='fade-in'][data-reveal-state='entered'] {
+    animation-name: reveal-fade;
+  }
+  .sakura-theme[data-motion='on'] [data-reveal='slide-left'][data-reveal-state='entered'] {
+    animation-name: reveal-left;
+  }
+  .sakura-theme[data-motion='on'] [data-reveal='slide-right'][data-reveal-state='entered'] {
+    animation-name: reveal-right;
+  }
+  .sakura-theme[data-motion='on'] [data-reveal='scale'][data-reveal-state='entered'] {
+    animation-name: reveal-scale;
+  }
+  .sakura-theme[data-motion='on'] [data-reveal-quick='true'][data-reveal-state='entered'] {
+    animation-name: reveal-quick;
+  }
+  .sakura-theme[data-motion='on'] .metric-card[data-reveal-state='entered']::after {
+    transform-origin: left;
+    animation: reveal-line var(--reveal-duration) var(--motion-ease) var(--reveal-delay, 0ms) both;
+  }
+  .sakura-theme[data-motion='on'] .scroll-top {
+    animation: reveal-fade 180ms ease both;
+  }
+}
+/* Focus is always visible immediately, even inside a staggered card. */
+.sakura-theme [data-reveal]:focus-within {
+  animation: none !important;
+  opacity: 1;
+  translate: none;
+  scale: 1;
+}
+@keyframes reveal-up {
+  from {
+    opacity: 0;
+    translate: 0 18px;
+  }
+  to {
+    opacity: 1;
+    translate: 0 0;
+  }
+}
+@keyframes reveal-fade {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+@keyframes reveal-left {
+  from {
+    opacity: 0;
+    translate: 12px 0;
+  }
+  to {
+    opacity: 1;
+    translate: 0 0;
+  }
+}
+@keyframes reveal-right {
+  from {
+    opacity: 0;
+    translate: -12px 0;
+  }
+  to {
+    opacity: 1;
+    translate: 0 0;
+  }
+}
+@keyframes reveal-scale {
+  from {
+    opacity: 0;
+    scale: 0.96;
+  }
+  to {
+    opacity: 1;
+    scale: 1;
+  }
+}
+@keyframes reveal-quick {
+  from {
+    opacity: 0.65;
+  }
+  to {
+    opacity: 1;
+  }
+}
+@keyframes reveal-line {
+  from {
+    transform: scaleX(0.15);
+  }
+  to {
+    transform: scaleX(1);
+  }
+}
+@media (max-width: 700px) {
+  /* Lateral travel is unnecessary in narrow viewports. */
+  .sakura-theme[data-motion='on'] [data-reveal^='slide-'][data-reveal-state='entered'] {
+    animation-name: reveal-fade;
+  }
+}
+.scroll-top .scroll-top-label {
+  position: absolute;
+  right: calc(100% + 10px);
+  bottom: 4px;
+  width: max-content;
+  padding: 8px 12px;
+  border: 1px solid var(--border-strong);
+  border-radius: 9px;
+  background: var(--surface-raised);
+  color: var(--text-main);
+  font-size: 12px;
+  opacity: 0;
+  visibility: hidden;
+  transition:
+    opacity var(--motion-fast),
+    visibility var(--motion-fast);
+  pointer-events: none;
+}
+.scroll-top:hover .scroll-top-label,
+.scroll-top:focus-visible .scroll-top-label {
+  opacity: 1;
+  visibility: visible;
+}
+@media (prefers-reduced-motion: reduce) {
+  .sakura-theme [data-reveal] {
+    animation: none !important;
+    opacity: 1;
+    translate: none;
+    scale: 1;
+  }
+}
+.sakura-theme[data-motion='off'] [data-reveal] {
+  animation: none !important;
+  opacity: 1;
+  translate: none;
+  scale: 1;
+}

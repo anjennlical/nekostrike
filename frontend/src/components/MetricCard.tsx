@@ -9,6 +9,7 @@ export default function MetricCard({
   sub,
   value,
   loading,
+  revealIndex = 0,
 }: {
   title: string
   icon: LucideIcon
@@ -16,6 +17,7 @@ export default function MetricCard({
   sub: string
   value: number | undefined
   loading: boolean
+  revealIndex?: number
 }) {
   const titleId = useId()
   const state = loading
@@ -26,7 +28,13 @@ export default function MetricCard({
       ? 'Dados indisponíveis'
       : 'No histórico local'
   return (
-    <section className="metric-card" aria-labelledby={titleId} aria-busy={loading}>
+    <section
+      className="metric-card"
+      aria-labelledby={titleId}
+      aria-busy={loading}
+      data-reveal="fade-up"
+      data-reveal-index={revealIndex}
+    >
       <div className="metric-top">
         <h2 id={titleId}>{title}</h2>
         <span className={`metric-icon ${tone}`} aria-hidden="true">

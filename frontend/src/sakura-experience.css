@@ -536,9 +536,6 @@
   .sakura-theme[data-motion='on'] .experience-notice[data-closing] {
     animation: backdrop-leave var(--motion-exit) ease both;
   }
-  .sakura-theme[data-motion='on'] .architecture-details[open] .architecture-grid {
-    animation: workspace-arrive var(--motion-normal) var(--motion-ease) both;
-  }
   .sakura-theme[data-motion='on'] .brand:hover .brand-mark {
     transform: rotate(2deg);
   }

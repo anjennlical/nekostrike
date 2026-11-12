@@ -20,6 +20,7 @@ import Panel from '../components/Panel'
 import MetricCard from '../components/MetricCard'
 import type { WorkspaceState } from '../useWorkspace'
 import { labChecks } from '../lab-checks'
+import { useScrollReveal } from '../useScrollReveal'
 
 export default function Overview({
   connection,
@@ -30,9 +31,10 @@ export default function Overview({
   verify: ReactNode
   workspace: WorkspaceState
 }) {
+  const revealScope = useScrollReveal()
   return (
-    <div className="overview-page workspace-page">
-      <section className="sakura-hero overview-hero">
+    <div className="overview-page workspace-page" ref={revealScope}>
+      <section className="sakura-hero overview-hero" data-reveal="fade-in">
         <SakuraBloom className="hero-blossom" />
         <div className="sakura-hero-copy">
           <span className="sakura-label">
@@ -92,8 +94,13 @@ export default function Overview({
               (finding) => finding.review_status === 'reviewed',
             ).length,
           },
-        ].map((metric) => (
-          <MetricCard key={metric.title} {...metric} loading={workspace.loading} />
+        ].map((metric, index) => (
+          <MetricCard
+            key={metric.title}
+            {...metric}
+            loading={workspace.loading}
+            revealIndex={index}
+          />
         ))}
       </div>
       <div className="overview-grid">
@@ -172,7 +179,7 @@ export default function Overview({
             evidências reais.
           </div>
         </Panel>
-        <Panel title="Um ambiente, sob controle" eyebrow="STATUS DO WORKSPACE">
+        <Panel title="Um ambiente, sob controle" eyebrow="STATUS DO WORKSPACE" revealIndex={1}>
           <div className="service-row">
             <span className="service-icon">
               <Activity size={18} />
@@ -224,7 +231,7 @@ export default function Overview({
           </div>
         </Panel>
       </div>
-      <section className="journey">
+      <section className="journey" data-reveal="fade-in">
         <div className="journey-intro">
           <span className="eyebrow">NOSSO CAMINHO</span>
           <h2>Da curiosidade à evidência.</h2>

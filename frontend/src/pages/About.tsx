@@ -11,13 +11,15 @@ import {
 import MochiStudio from '../components/MochiStudio'
 import Panel from '../components/Panel'
 import { MotionToggle, useWorkspaceMotion } from '../components/WorkspaceMotion'
+import { useScrollReveal } from '../useScrollReveal'
 
 export default function About({ replayIntro }: { replayIntro: () => void }) {
   const motion = useWorkspaceMotion()
+  const revealScope = useScrollReveal()
   return (
-    <div className="workspace-page about-page">
+    <div className="workspace-page about-page" ref={revealScope}>
       <section className="sakura-hero about-hero">
-        <div className="sakura-hero-copy">
+        <div className="sakura-hero-copy" data-reveal="fade-up">
           <span className="sakura-label">
             <Sparkles size={14} /> UM PROJETO DA LARI
           </span>
@@ -44,7 +46,7 @@ export default function About({ replayIntro }: { replayIntro: () => void }) {
             </button>
           </div>
         </div>
-        <figure className="sakura-studio">
+        <figure className="sakura-studio" data-reveal="scale">
           <MochiStudio />
           <figcaption>FEITO DE CURIOSIDADE & CUIDADO</figcaption>
           <div className="studio-controls">
@@ -52,7 +54,7 @@ export default function About({ replayIntro }: { replayIntro: () => void }) {
           </div>
         </figure>
       </section>
-      <Panel title="Por que criei o NekoStrike?" eyebrow="AUTORIA / LARI">
+      <Panel title="Por que criei o NekoStrike?" eyebrow="AUTORIA / LARI" reveal="slide-right">
         <div className="about-story">
           <p>
             O NekoStrike nasceu da minha vontade de unir duas áreas que me fascinam: cibersegurança
@@ -75,7 +77,9 @@ export default function About({ replayIntro }: { replayIntro: () => void }) {
       </Panel>
       <section id="about-how" className="about-how" aria-labelledby="about-how-title">
         <p className="eyebrow">DA CURIOSIDADE À EVIDÊNCIA</p>
-        <h2 id="about-how-title">Como funciona?</h2>
+        <h2 id="about-how-title" data-reveal="fade-in">
+          Como funciona?
+        </h2>
         <div className="about-steps">
           {[
             {
@@ -103,7 +107,13 @@ export default function About({ replayIntro }: { replayIntro: () => void }) {
               href: '#findings',
             },
           ].map(({ title, text, icon: Icon, href }, index) => (
-            <a className="about-step" key={title} href={href}>
+            <a
+              className="about-step"
+              key={title}
+              href={href}
+              data-reveal="fade-up"
+              data-reveal-index={index}
+            >
               <span className="eyebrow">0{index + 1}</span>
               <Icon size={24} />
               <h3>{title}</h3>
@@ -114,7 +124,7 @@ export default function About({ replayIntro }: { replayIntro: () => void }) {
         </div>
       </section>
       <div className="overview-grid">
-        <Panel title="Conheça a Mochi" eyebrow="SUA COMPANHEIRA DE WORKSPACE">
+        <Panel title="Conheça a Mochi" eyebrow="SUA COMPANHEIRA DE WORKSPACE" reveal="scale">
           <p>
             A Mochi reage às ações reais no Overview e tem um cantinho com fones e notebook. As
             animações e falas locais não são análises por IA.
@@ -127,7 +137,7 @@ export default function About({ replayIntro }: { replayIntro: () => void }) {
             Visitar o cantinho da Mochi <ArrowRight size={16} />
           </a>
         </Panel>
-        <Panel title="Ética e segurança" eyebrow="LIMITES CLAROS">
+        <Panel title="Ética e segurança" eyebrow="LIMITES CLAROS" revealIndex={1}>
           <ul className="about-limits">
             <li>Somente o laboratório interno do projeto; nenhum alvo externo arbitrário.</li>
             <li>Resultados apoiados em evidências verificáveis e controles.</li>
@@ -140,7 +150,7 @@ export default function About({ replayIntro }: { replayIntro: () => void }) {
           </p>
         </Panel>
       </div>
-      <Panel title="Por dentro do NekoStrike" eyebrow="ARQUITETURA REAL">
+      <Panel title="Por dentro do NekoStrike" eyebrow="ARQUITETURA REAL" reveal={false}>
         <details className="architecture-details">
           <summary>
             <CodeXml size={18} /> Arquitetura e tecnologias
@@ -171,8 +181,8 @@ export default function About({ replayIntro }: { replayIntro: () => void }) {
                 'Relatórios e IA',
                 'Markdown determinístico disponível. PDF no produto e provedor de IA ainda não implementados.',
               ],
-            ].map(([title, text]) => (
-              <div key={title}>
+            ].map(([title, text], index) => (
+              <div key={title} data-reveal="fade-up" data-reveal-index={index}>
                 <h3>{title}</h3>
                 <p>{text}</p>
               </div>
@@ -180,7 +190,7 @@ export default function About({ replayIntro }: { replayIntro: () => void }) {
           </div>
         </details>
       </Panel>
-      <section className="about-outro">
+      <section className="about-outro" data-reveal="fade-in">
         <ShieldCheck size={24} />
         <h2>Pequenos passos. Evidências reais.</h2>
         <p>

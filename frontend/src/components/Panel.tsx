@@ -1,4 +1,5 @@
 import { useId, type ReactNode } from 'react'
+import type { RevealVariant } from '../scroll-reveal'
 
 export default function Panel({
   title,
@@ -6,16 +7,25 @@ export default function Panel({
   action,
   children,
   className = '',
+  reveal = 'fade-up',
+  revealIndex = 0,
 }: {
   title: string
   eyebrow?: string
   action?: ReactNode
   children: ReactNode
   className?: string
+  reveal?: RevealVariant | false
+  revealIndex?: number
 }) {
   const titleId = useId()
   return (
-    <section className={`panel sakura-panel ${className}`} aria-labelledby={titleId}>
+    <section
+      className={`panel sakura-panel ${className}`}
+      aria-labelledby={titleId}
+      data-reveal={reveal || undefined}
+      data-reveal-index={revealIndex}
+    >
       <div className="panel-heading">
         <div>
           {eyebrow && <p className="eyebrow">{eyebrow}</p>}

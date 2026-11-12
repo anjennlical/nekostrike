@@ -11,6 +11,7 @@ import MochiStudio from '../components/MochiStudio'
 import { MotionToggle } from '../components/WorkspaceMotion'
 import SakuraBloom from '../components/SakuraBloom'
 import Panel from '../components/Panel'
+import { useScrollReveal } from '../useScrollReveal'
 
 const steps = [
   {
@@ -33,11 +34,12 @@ const steps = [
 ]
 
 export default function MochiAI() {
+  const revealScope = useScrollReveal()
   return (
-    <div className="mochi-page workspace-page">
+    <div className="mochi-page workspace-page" ref={revealScope}>
       <section className="sakura-hero" aria-labelledby="mochi-introduction">
         <SakuraBloom className="hero-blossom" />
-        <div className="sakura-hero-copy">
+        <div className="sakura-hero-copy" data-reveal="fade-up">
           <span className="sakura-label">
             <Sparkles size={15} /> CONHEÇA SUA FUTURA ASSISTENTE
           </span>
@@ -61,7 +63,7 @@ export default function MochiAI() {
             </div>
           </div>
         </div>
-        <figure className="sakura-studio">
+        <figure className="sakura-studio" data-reveal="scale">
           <MochiStudio />
           <figcaption>
             <PawPrint size={13} /> MOCHI’S CORNER <span>FEITO DE CURIOSIDADE & CUIDADO</span>
@@ -81,6 +83,7 @@ export default function MochiAI() {
       <div className="mochi-panels">
         <Panel
           className="process-panel"
+          reveal={false}
           title="Como a análise vai funcionar"
           eyebrow="IA COM CONTEXTO"
           action={
@@ -91,7 +94,7 @@ export default function MochiAI() {
         >
           <ol className="sakura-steps">
             {steps.map(({ title, description, icon: Icon }, index) => (
-              <li key={title}>
+              <li key={title} data-reveal="fade-up" data-reveal-index={index}>
                 <span className="step-number">0{index + 1}</span>
                 <div>
                   <h3>{title}</h3>
@@ -107,6 +110,7 @@ export default function MochiAI() {
         </Panel>
         <Panel
           className="trust-panel"
+          reveal="slide-left"
           title="Transparência, sempre"
           eyebrow="ESTADO ATUAL"
           action={
@@ -143,7 +147,7 @@ export default function MochiAI() {
           </div>
         </Panel>
       </div>
-      <div className="mochi-signoff" aria-hidden="true">
+      <div className="mochi-signoff" aria-hidden="true" data-reveal="fade-in">
         <span />
         <PawPrint size={15} />
         <span />

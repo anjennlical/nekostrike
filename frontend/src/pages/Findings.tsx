@@ -5,6 +5,7 @@ import EvidenceIllustration from '../components/EvidenceIllustration'
 import EvidenceView from '../components/EvidenceView'
 import type { WorkspaceState } from '../useWorkspace'
 import Notice from '../components/Notice'
+import { useScrollReveal } from '../useScrollReveal'
 
 export default function Findings({
   workspace,
@@ -15,6 +16,7 @@ export default function Findings({
   filter: string
   setFilter: (value: string) => void
 }) {
+  const revealScope = useScrollReveal()
   const [exporting, setExporting] = useState(false)
   const [exportError, setExportError] = useState<string | null>(null)
   const [exportNotice, setExportNotice] = useState<string | null>(null)
@@ -48,9 +50,10 @@ export default function Findings({
     }
   }
   return (
-    <div className="workspace-page findings-page">
+    <div className="workspace-page findings-page" ref={revealScope}>
       <Panel
         title="Achados com contexto"
+        reveal={false}
         eyebrow="EVIDÊNCIAS & REVISÃO"
         action={<span className="subtle-tag">SQLite · persistência local</span>}
       >
@@ -82,7 +85,11 @@ export default function Findings({
               : 'Histórico indisponível. Atualize os dados para tentar novamente.'}
           </p>
         ) : findings?.length === 0 ? (
-          <div className="empty-state findings-empty">
+          <div
+            className="empty-state findings-empty"
+            data-reveal="fade-in"
+            data-reveal-key="empty-findings"
+          >
             <EvidenceIllustration />
             <h2>
               {filter === 'all'
@@ -106,12 +113,15 @@ export default function Findings({
           </div>
         ) : (
           <div className="finding-list" data-filter={filter}>
-            {findings?.map((finding) => {
+            {findings?.map((finding, index) => {
               const run = workspace.data!.runs.find((item) => item.id === finding.run_id)!
               return (
                 <article
                   className="finding-record"
                   key={finding.id}
+                  data-reveal={index < 4 ? 'fade-up' : undefined}
+                  data-reveal-key={finding.id}
+                  data-reveal-index={index}
                   data-recent={workspace.lastRun?.id === finding.run_id || undefined}
                 >
                   <div className="finding-record-head">

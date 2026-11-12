@@ -1,8 +1,8 @@
-import { useEffect, useRef, useState, type ReactNode } from 'react'
+import { useEffect, useRef, useState, type ReactNode, type ComponentProps } from 'react'
 import { useWorkspaceMotion } from './WorkspaceMotion'
 
 /** Native modal supplies focus containment and background inertness; CSS supplies motion. */
-export default function Dialog({
+function DialogContent({
   open,
   titleId,
   onClose,
@@ -96,5 +96,23 @@ export default function Dialog({
     >
       {children}
     </dialog>
+  )
+}
+
+/** Keep the modal mounted for its exit, then release its DOM and internal controls. */
+export default function Dialog(props: ComponentProps<typeof DialogContent>) {
+  const [present, setPresent] = useState(props.open)
+  useEffect(() => {
+    if (props.open) setPresent(true)
+  }, [props.open])
+  if (!present) return null
+  return (
+    <DialogContent
+      {...props}
+      onAfterClose={() => {
+        setPresent(false)
+        props.onAfterClose?.()
+      }}
+    />
   )
 }

@@ -7,6 +7,7 @@ import EvidenceView from '../components/EvidenceView'
 import type { WorkspaceState } from '../useWorkspace'
 import type { CheckType } from '../workspace-api'
 import { labChecks } from '../lab-checks'
+import { useScrollReveal } from '../useScrollReveal'
 
 export default function SecurityLab({
   connection,
@@ -23,6 +24,7 @@ export default function SecurityLab({
   checkType: CheckType
   setCheckType: (value: CheckType) => void
 }) {
+  const revealScope = useScrollReveal()
   const selectedCheck = labChecks[checkType]
   const exposureReady = connection.data?.lab.checks?.includes('data_exposure') ?? false
   const configurationReady =
@@ -99,8 +101,8 @@ export default function SecurityLab({
   }
 
   return (
-    <div className="workspace-page lab-page">
-      <section className="section-banner lab-banner">
+    <div className="workspace-page lab-page" ref={revealScope}>
+      <section className="section-banner lab-banner" data-reveal="fade-in">
         <div className="lab-insignia" aria-hidden="true">
           <FlaskConical size={30} />
         </div>
@@ -141,7 +143,7 @@ export default function SecurityLab({
           </p>
         )}
       </div>
-      <Panel title={selectedCheck.title} eyebrow={selectedCheck.eyebrow}>
+      <Panel title={selectedCheck.title} eyebrow={selectedCheck.eyebrow} reveal={false}>
         <p className="panel-description">{selectedCheck.description}</p>
         <p className="learning-note">
           <CircleHelp size={18} aria-hidden="true" />
@@ -151,7 +153,7 @@ export default function SecurityLab({
           </span>
         </p>
         <div className="lab-scenarios">
-          <article>
+          <article data-reveal="fade-up">
             <span className="scenario-number">A / INVESTIGAR</span>
             <h3>Cenário vulnerável</h3>
             <p>{selectedCheck.vulnerable}</p>
@@ -171,7 +173,7 @@ export default function SecurityLab({
             </button>
             {feedback('vulnerable')}
           </article>
-          <article>
+          <article data-reveal="fade-up" data-reveal-index="1">
             <span className="scenario-number">B / COMPARAR</span>
             <h3>Cenário corrigido</h3>
             <p>{selectedCheck.fixed}</p>
@@ -195,6 +197,7 @@ export default function SecurityLab({
         {displayedRun && (
           <div
             className="run-result"
+            data-reveal="fade-in"
             ref={resultPanel}
             tabIndex={-1}
             role="region"
@@ -251,7 +254,7 @@ export default function SecurityLab({
             </div>
           )}
         </Panel>
-        <Panel title="Limites claros, desde o início" eyebrow="ESCOPO DO LAB">
+        <Panel title="Limites claros, desde o início" eyebrow="ESCOPO DO LAB" revealIndex={1}>
           <ul className="check-list">
             <li>
               <ShieldCheck />
@@ -280,7 +283,11 @@ export default function SecurityLab({
           </div>
         </Panel>
       </div>
-      <Panel title="Três caminhos para aprender" eyebrow="VERIFICAÇÕES IMPLEMENTADAS">
+      <Panel
+        title="Três caminhos para aprender"
+        eyebrow="VERIFICAÇÕES IMPLEMENTADAS"
+        reveal={false}
+      >
         <div className="test-grid">
           {[
             {
@@ -302,7 +309,12 @@ export default function SecurityLab({
               tag: 'Configuração · implementado',
             },
           ].map((test) => (
-            <article className="planned-test" key={test.n}>
+            <article
+              className="planned-test"
+              key={test.n}
+              data-reveal="fade-up"
+              data-reveal-index={Number(test.n) - 1}
+            >
               <span className="test-number">{test.n}</span>
               <h3>{test.title}</h3>
               <p>{test.text}</p>

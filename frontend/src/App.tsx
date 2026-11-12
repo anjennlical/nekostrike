@@ -393,6 +393,9 @@ export default function App() {
             }}
           >
             <ArrowUp size={18} />
+            <span className="scroll-top-label" aria-hidden="true">
+              Voltar ao topo
+            </span>
           </button>
         )}
       </div>
