@@ -28,6 +28,15 @@ class Store:
                 review_status TEXT NOT NULL CHECK(review_status IN ('pending', 'reviewed')),
                 details TEXT NOT NULL
             );
+            CREATE TABLE IF NOT EXISTS mochi_analyses (
+                id TEXT PRIMARY KEY,
+                finding_id TEXT NOT NULL REFERENCES findings(id),
+                created_at TEXT NOT NULL,
+                review_status TEXT NOT NULL CHECK(review_status IN ('pending', 'reviewed')),
+                result TEXT NOT NULL,
+                context_hash TEXT NOT NULL
+            );
+            CREATE INDEX IF NOT EXISTS mochi_analyses_finding ON mochi_analyses(finding_id, created_at);
             """)
             if "check_type" not in {row[1] for row in connection.execute("PRAGMA table_info(runs)")}:
                 connection.execute("BEGIN IMMEDIATE")
@@ -35,6 +44,13 @@ class Store:
                 if "check_type" not in {row[1] for row in connection.execute("PRAGMA table_info(runs)")}:
                     connection.execute("ALTER TABLE runs ADD COLUMN check_type TEXT NOT NULL DEFAULT 'bola'")
                 connection.commit()
+            for column in ("source_context", "source_hash"):
+                if column not in {row[1] for row in connection.execute("PRAGMA table_info(mochi_analyses)")}:
+                    connection.execute("BEGIN IMMEDIATE")
+                    if column not in {row[1] for row in connection.execute("PRAGMA table_info(mochi_analyses)")}:
+                        # Names are fixed constants, never request input.
+                        connection.execute(f"ALTER TABLE mochi_analyses ADD COLUMN {column} TEXT")
+                    connection.commit()
         except sqlite3.Error:
             connection.close()
             raise
@@ -102,5 +118,91 @@ class Store:
                 details = decode_json(run.pop("details"), dict)
                 run["evidence"] = decode_json(run["evidence"], list)
                 return {"finding": details, "run": run}
+        finally:
+            connection.close()
+
+    def save_analysis(self, result, context_hash: str, context: dict, source_hash: str):
+        """Called only after model/schema/evidence validation; immutable response per UUID."""
+        connection = self.connect()
+        try:
+            with connection:
+                connection.execute("""INSERT INTO mochi_analyses
+                    (id, finding_id, created_at, review_status, result, context_hash, source_context, source_hash)
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?) ON CONFLICT(id) DO NOTHING""", (
+                    result.record.id, result.analysis.finding_id, result.record.created_at,
+                    result.record.review_status, result.model_dump_json(), context_hash,
+                    json.dumps(context, ensure_ascii=False), source_hash))
+        finally:
+            connection.close()
+
+    def analyses(self, finding_id: str | None = None):
+        """Validate stored output and its current evidence before displaying/exporting it."""
+        from .ai.schemas import AnalysisResult
+        from .ai.context import prepare_context, validate_analysis, validate_saved_context, source_fingerprint
+        from .ai.provider import AIError
+        from pydantic import ValidationError
+        import hashlib
+
+        snapshot = self.snapshot()
+        findings = {f["id"]: f for f in snapshot["findings"]}
+        runs = {r["id"]: r for r in snapshot["runs"]}
+        connection = self.connect()
+        try:
+            # Bound each record before loading its JSON. No corrupt rows are silently skipped.
+            rows = connection.execute("""SELECT id, finding_id, created_at, review_status, context_hash, source_hash,
+                CASE WHEN length(CAST(result AS BLOB)) <= 65536 THEN result ELSE NULL END AS result,
+                CASE WHEN length(CAST(source_context AS BLOB)) <= 16384 THEN source_context ELSE NULL END AS source_context,
+                source_context IS NOT NULL AS has_context
+                FROM mochi_analyses WHERE (? IS NULL OR finding_id=?) ORDER BY created_at DESC, id DESC""",
+                (finding_id, finding_id)).fetchall()
+            output = []
+            for row in rows:
+                try:
+                    result = AnalysisResult.model_validate(decode_json(row["result"], dict))
+                    if (result.record is None or result.storage_warning or result.record.id != row["id"]
+                            or result.analysis.finding_id != row["finding_id"]
+                            or result.record.created_at != row["created_at"]):
+                        raise ValueError("record identity mismatch")
+                    finding = findings[row["finding_id"]]
+                    current_source = {"finding": finding, "run": runs[finding["run_id"]]}
+                    try:
+                        current = prepare_context(current_source, finding["id"], 16384)
+                    except AIError:
+                        current = None
+                    context = decode_json(row["source_context"], dict) if row["has_context"] else current
+                    if context is None:
+                        raise ValueError("legacy context unavailable")
+                    original_run = validate_saved_context(context)
+                    digest = hashlib.sha256(json.dumps(context, sort_keys=True).encode()).hexdigest()
+                    if (digest != row["context_hash"] or result.deterministic_verdict != context["verdict"]
+                            or result.deterministic_severity != context["severity"]
+                            or result.record.run_id not in (None, original_run)
+                            or result.record.check_type not in (None, context["check_type"])):
+                        raise ValueError("stored context mismatch")
+                    validate_analysis(result.analysis, context)
+                    # Review column is authoritative; validate it rather than trusting old JSON.
+                    data = result.model_dump()
+                    source_hash = row["source_hash"]
+                    if source_hash is not None and (not isinstance(source_hash, str) or len(source_hash) != 64 or any(c not in '0123456789abcdef' for c in source_hash)):
+                        raise ValueError("invalid source fingerprint")
+                    unchanged = current == context and (source_hash is None or source_hash == source_fingerprint(current_source))
+                    data["record"]["review_status"] = row["review_status"]
+                    data["record"].update(run_id=original_run, check_type=context["check_type"],
+                                           evidence_status="current" if unchanged else "historical")
+                    output.append(AnalysisResult.model_validate(data))
+                except (ValueError, TypeError, KeyError, IndexError, AttributeError, ValidationError, AIError):
+                    raise StoredDataError("invalid persisted analysis") from None
+            return output
+        finally:
+            connection.close()
+
+    def review_analysis(self, analysis_id: str, status: str) -> bool:
+        # Fail closed before updating malformed history.
+        self.analyses()
+        connection = self.connect()
+        try:
+            with connection:
+                return connection.execute("UPDATE mochi_analyses SET review_status=? WHERE id=?",
+                                          (status, analysis_id)).rowcount == 1
         finally:
             connection.close()

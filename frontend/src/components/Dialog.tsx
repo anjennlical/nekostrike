@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState, type ReactNode, type ComponentProps } from 'react'
 import { useWorkspaceMotion } from './WorkspaceMotion'
+import { exitDuration } from '../motion-timing'
 
 /** Native modal supplies focus containment and background inertness; CSS supplies motion. */
 function DialogContent({
@@ -27,6 +28,7 @@ function DialogContent({
   useEffect(() => {
     const element = dialog.current!
     let timer: ReturnType<typeof setTimeout> | undefined
+    let stopListening: (() => void) | undefined
     if (open) {
       setClosing(false)
       if (!element.open) {
@@ -38,17 +40,38 @@ function DialogContent({
       }
     } else if (element.open) {
       setClosing(true)
+      let finished = false
       const finish = () => {
+        if (finished) return
+        finished = true
+        clearTimeout(timer)
         element.close()
         if (overflow.current !== null) document.documentElement.style.overflow = overflow.current
         overflow.current = null
         if (returnFocus.current?.isConnected) returnFocus.current.focus({ preventScroll: true })
         afterClose.current?.()
       }
-      if (motion.enabled) timer = setTimeout(finish, 180)
-      else finish()
+      if (motion.enabled) {
+        const ended = (event: AnimationEvent) => {
+          if (
+            event.target === element &&
+            ['dialog-leave', 'backdrop-leave'].includes(event.animationName)
+          )
+            finish()
+        }
+        element.addEventListener('animationend', ended)
+        stopListening = () => element.removeEventListener('animationend', ended)
+        // Completion event is authoritative; bounded fallback handles canceled/missing CSS.
+        timer = setTimeout(
+          finish,
+          exitDuration(getComputedStyle(element).getPropertyValue('--motion-exit')) + 50,
+        )
+      } else finish()
     }
-    return () => clearTimeout(timer)
+    return () => {
+      clearTimeout(timer)
+      stopListening?.()
+    }
   }, [open, motion.enabled])
   useEffect(() => {
     const element = dialog.current
@@ -66,6 +89,10 @@ function DialogContent({
       data-motion={motion.enabled ? 'on' : 'off'}
       aria-labelledby={titleId}
       onKeyDown={(event) => {
+        if (!open) {
+          event.preventDefault()
+          return
+        }
         if (event.key !== 'Tab') return
         const controls = Array.from(
           event.currentTarget.querySelectorAll<HTMLElement>(
@@ -91,10 +118,21 @@ function DialogContent({
         onClose()
       }}
       onClick={(event) => {
-        if (event.target === event.currentTarget) onClose()
+        if (!open || event.target !== event.currentTarget) return
+        const bounds = event.currentTarget.getBoundingClientRect()
+        // A click in dialog padding is not a backdrop click.
+        if (
+          event.clientX < bounds.left ||
+          event.clientX > bounds.right ||
+          event.clientY < bounds.top ||
+          event.clientY > bounds.bottom
+        )
+          onClose()
       }}
     >
-      {children}
+      <div className="dialog-presence" inert={!open || undefined}>
+        {children}
+      </div>
     </dialog>
   )
 }

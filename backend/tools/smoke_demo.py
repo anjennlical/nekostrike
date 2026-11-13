@@ -8,6 +8,9 @@ import tempfile
 BACKEND = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(BACKEND))
 from httpx import ASGITransport, AsyncClient
+# This disposable demo never loads local credentials, including at module import.
+from app.ai import config
+config.load_settings = lambda: config.AISettings()
 from app.main import create_app
 
 

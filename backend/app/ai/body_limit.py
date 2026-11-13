@@ -7,7 +7,8 @@ class AnalyzeBodyLimit:
         self.app = app
 
     async def __call__(self, scope, receive, send):
-        if scope["type"] != "http" or scope["path"] != "/api/ai/analyze":
+        if scope["type"] != "http" or not (scope["path"] == "/api/ai/analyze" or
+                (scope["method"] == "PATCH" and scope["path"].startswith("/api/ai/analyses/"))):
             return await self.app(scope, receive, send)
         data = bytearray()
         while True:
@@ -16,7 +17,7 @@ class AnalyzeBodyLimit:
                 return
             data.extend(message.get("body", b""))
             if len(data) > 1024:
-                response = JSONResponse({"detail": {"code": "input_too_large", "message": "Envie apenas o identificador do achado."}}, status_code=413)
+                response = JSONResponse({"detail": {"code": "input_too_large", "message": "Envie apenas os campos permitidos."}}, status_code=413)
                 return await response(scope, receive, send)
             if not message.get("more_body", False):
                 break

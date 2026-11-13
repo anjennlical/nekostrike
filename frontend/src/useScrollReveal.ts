@@ -35,23 +35,29 @@ export function useScrollReveal(root: Element | null = null) {
         ...node.querySelectorAll<HTMLElement>('[data-reveal]'),
       ]
     }
-    const add = (target: HTMLElement) => {
-      if (target.closest('dialog')) return
-      // Read geometry once at registration, never on a scroll event.
-      const rect = target.getBoundingClientRect()
+    const addAll = (targets: HTMLElement[], presentedByRoute = false) => {
+      // Batch geometry before any dataset/style writes; never measure on scroll.
       const bounds = root?.getBoundingClientRect()
-      const aboveFold =
-        rect.height > 0 &&
-        rect.top < (bounds?.bottom ?? window.innerHeight) &&
-        rect.bottom > (bounds?.top ?? 0)
-      target.dataset.revealQuick = aboveFold ? 'true' : 'false'
-      target.style.setProperty(
-        '--reveal-delay',
-        `${aboveFold ? Math.min(80, revealDelay(Number(target.dataset.revealIndex ?? 0))) : revealDelay(Number(target.dataset.revealIndex ?? 0))}ms`,
-      )
-      controller.register(target, target.dataset.revealKey)
+      const bottom = bounds?.bottom ?? window.innerHeight
+      const top = bounds?.top ?? 0
+      const routeOwnsEntrance = presentedByRoute && !!container.closest('.route-surface')
+      const measured = targets
+        .filter((target) => container.contains(target) && !target.closest('dialog'))
+        .map((target) => {
+          const rect = target.getBoundingClientRect()
+          return { target, aboveFold: rect.height > 0 && rect.top < bottom && rect.bottom > top }
+        })
+      for (const { target, aboveFold } of measured) {
+        target.dataset.revealQuick = aboveFold ? 'true' : 'false'
+        target.style.setProperty(
+          '--reveal-delay',
+          `${aboveFold ? Math.min(80, revealDelay(Number(target.dataset.revealIndex ?? 0))) : revealDelay(Number(target.dataset.revealIndex ?? 0))}ms`,
+        )
+        // One entrance for visible content. Below-fold sections keep their scroll reveal.
+        controller.register(target, target.dataset.revealKey, aboveFold && routeOwnsEntrance)
+      }
     }
-    targetsIn(container).forEach(add)
+    addAll(targetsIn(container), true)
     const focus = (event: FocusEvent) => {
       let target =
         event.target instanceof HTMLElement
@@ -75,12 +81,16 @@ export function useScrollReveal(root: Element | null = null) {
     let mutations: MutationObserver | undefined
     try {
       mutations = new MutationObserver((records) => {
+        const added = new Set<HTMLElement>()
         for (const record of records) {
           record.removedNodes.forEach((node) =>
             targetsIn(node).forEach((target) => controller.release(target)),
           )
-          record.addedNodes.forEach((node) => targetsIn(node).forEach(add))
+          record.addedNodes.forEach((node) =>
+            targetsIn(node).forEach((target) => added.add(target)),
+          )
         }
+        if (added.size) addAll([...added])
       })
       mutations.observe(container, { childList: true, subtree: true })
     } catch {

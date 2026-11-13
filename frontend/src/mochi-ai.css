@@ -23,7 +23,7 @@
   font: inherit;
   text-overflow: ellipsis;
 }
-.mochi-analysis :is(button, select):focus-visible {
+.mochi-analysis :is(button, select, summary, a):focus-visible {
   outline: 3px solid var(--focus-ring);
   outline-offset: 4px;
 }
@@ -68,6 +68,151 @@
   line-height: 1.75;
   overflow-wrap: anywhere;
 }
+.ai-facts {
+  padding: 1.1rem;
+  border: 1px solid var(--border-strong);
+  border-radius: 16px;
+  background: var(--surface-raised);
+  overflow-wrap: anywhere;
+}
+.ai-history {
+  display: grid;
+  gap: 0.5rem;
+  margin-block: 1rem;
+}
+.ai-record {
+  overflow-wrap: anywhere;
+}
+.ai-record .sakura-button {
+  margin-block: 0.6rem;
+}
+.ai-history-section {
+  margin-top: 2rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid var(--border-strong);
+  min-width: 0;
+}
+.ai-history-section h3 {
+  color: var(--text-accent);
+}
+.ai-history-list {
+  list-style: none;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1rem;
+}
+.ai-history-card {
+  border: 1px solid var(--border-strong);
+  border-radius: 16px;
+  padding: 1.1rem;
+  background: var(--surface-raised);
+  overflow-wrap: anywhere;
+}
+.ai-history-card[data-selected='true'] {
+  box-shadow: inset 0 0 0 2px var(--text-accent);
+}
+.ai-history-card p {
+  line-height: 1.7;
+  margin-block: 0.75rem;
+}
+.ai-history-card code {
+  font-size: 0.78rem;
+}
+.ai-history-empty,
+.ai-historical {
+  padding: 1rem;
+  border: 1px dashed var(--border-strong);
+  border-radius: 12px;
+  line-height: 1.7;
+}
+.ai-result-heading h3:focus-visible {
+  outline: 3px solid var(--focus-ring);
+  outline-offset: 5px;
+}
+@media (prefers-reduced-motion: no-preference) {
+  .sakura-theme[data-motion='on'] .ai-history-card {
+    animation: ai-history-enter 180ms ease-out both;
+  }
+}
+@keyframes ai-history-enter {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+@media (max-width: 768px) {
+  .ai-history-list {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+.ai-export-option {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.6rem;
+  padding-block: 0.75rem;
+  cursor: pointer;
+}
+.ai-export-option input {
+  flex: 0 0 auto;
+  width: 1.1rem;
+  height: 1.1rem;
+  accent-color: var(--text-accent);
+}
+.ai-export-option input:focus-visible {
+  outline: 3px solid var(--focus-ring);
+  outline-offset: 4px;
+}
+.ai-facts h3 {
+  margin-block: 0.8rem;
+}
+.ai-facts dl {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1rem;
+}
+.ai-facts dt {
+  color: var(--text-muted);
+  font-size: 0.8rem;
+}
+.ai-facts dd {
+  margin: 0.3rem 0 0;
+}
+.ai-facts code {
+  font-size: 0.8rem;
+}
+.ai-evidence-preview {
+  margin-top: 0.75rem;
+}
+.ai-evidence-preview summary {
+  cursor: pointer;
+  min-height: 44px;
+  padding-block: 0.7rem;
+  font-weight: 650;
+}
+.ai-evidence-preview ul {
+  padding-left: 1.2rem;
+  line-height: 1.7;
+}
+.ai-evidence-preview li + li {
+  margin-top: 0.7rem;
+}
+.ai-feedback {
+  display: flex;
+  align-items: baseline;
+  gap: 0.6rem;
+}
+.ai-state-dot {
+  width: 0.5rem;
+  height: 0.5rem;
+  flex: 0 0 0.5rem;
+  border-radius: 50%;
+  background: var(--text-accent);
+}
 .ai-result-heading {
   display: flex;
   align-items: center;
@@ -97,6 +242,9 @@
   display: none;
 }
 @media (prefers-reduced-motion: no-preference) {
+  .sakura-theme[data-motion='on'] .mochi-studio[data-mood='success'] .studio-head {
+    animation: studio-response-nod 700ms ease-in-out 2;
+  }
   .sakura-theme[data-motion='on'] .mochi-studio[data-analyzing='true'] .studio-head {
     animation: none;
     transform: rotate(2deg);
@@ -107,8 +255,48 @@
     animation-duration: 2.4s;
   }
 }
+@keyframes studio-response-nod {
+  0%,
+  100% {
+    transform: rotate(0);
+  }
+  45% {
+    transform: rotate(-4deg) translateY(-3px);
+  }
+}
 @media (max-width: 480px) {
+  .ai-facts dl {
+    grid-template-columns: minmax(0, 1fr);
+  }
   .ai-config-row > .sakura-button {
     width: 100%;
+  }
+}
+.ai-consumption {
+  margin-block: 1rem;
+  padding: 1rem;
+  border: 1px solid var(--border);
+  border-radius: 1rem;
+  overflow-wrap: anywhere;
+}
+.ai-consumption summary {
+  cursor: pointer;
+  font-weight: 700;
+}
+.ai-consumption dl {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 1rem;
+}
+.ai-consumption dt {
+  font-size: 0.85rem;
+}
+.ai-consumption dd {
+  margin: 0.3rem 0 0;
+  font-weight: 700;
+}
+@media (max-width: 600px) {
+  .ai-consumption dl {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }

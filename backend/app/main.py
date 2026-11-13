@@ -3,12 +3,14 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Literal
 from uuid import uuid4
+from uuid import UUID
 import sqlite3
 from fastapi import Depends, FastAPI, HTTPException, Request, Response
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel, ConfigDict
 from starlette.middleware.trustedhost import TrustedHostMiddleware
+from starlette.concurrency import run_in_threadpool
 from .lab import check_bola
 from .exposure import check_exposure
 from .misconfiguration import check_misconfiguration
@@ -119,6 +121,16 @@ def create_app(db_path: Path | None = None, *, ai_settings: AISettings | None = 
     def workspace():
         return store.snapshot()
 
+    @app.get("/api/ai/analyses", response_model=list[AnalysisResult], tags=["Mochi AI"])
+    def saved_analyses(finding_id: UUID):
+        return store.analyses(str(finding_id))
+
+    @app.patch("/api/ai/analyses/{analysis_id}", dependencies=[Depends(require_workspace)], tags=["Mochi AI"])
+    def review_analysis(analysis_id: UUID, body: ReviewInput):
+        if not store.review_analysis(str(analysis_id), body.review_status):
+            raise HTTPException(404, "Análise não encontrada")
+        return {"id": str(analysis_id), "review_status": body.review_status}
+
     @app.post("/api/runs", status_code=201, dependencies=[Depends(require_workspace)], tags=["Lab"])
     async def run_check(body: RunInput):
         try:
@@ -155,7 +167,8 @@ def create_app(db_path: Path | None = None, *, ai_settings: AISettings | None = 
                     "remediation": "Retorne um erro genérico ao cliente e valide o esquema da resposta. Restrinja diagnósticos detalhados a logs internos protegidos, sem segredos. Remover detalhes não resolve a falha simulada que originou o erro.",
                     "severity_reason": "Média no cenário didático: divulgação de detalhes internos fictícios, sem evidência de acesso a arquivos, credenciais ou execução de comandos. Sem pontuação CVSS.",
                 })
-        store.save(run, finding)
+        # SQLite may wait for a disk/transaction lock; keep the ASGI loop responsive.
+        await run_in_threadpool(store.save, run, finding)
         return run
 
     @app.patch("/api/findings/{finding_id}", dependencies=[Depends(require_workspace)], tags=["Evidence"])
@@ -165,8 +178,10 @@ def create_app(db_path: Path | None = None, *, ai_settings: AISettings | None = 
         return {"id": finding_id, "review_status": body.review_status}
 
     @app.get("/api/reports/markdown", tags=["Reports"])
-    def report():
-        return Response(markdown_report(store.snapshot()), media_type="text/markdown; charset=utf-8",
+    def report(include_ai: bool = False):
+        snapshot = store.snapshot()
+        analyses = store.analyses() if include_ai else None
+        return Response(markdown_report(snapshot, analyses), media_type="text/markdown; charset=utf-8",
                         headers={"Content-Disposition": 'attachment; filename="nekostrike-report.md"'})
     return app
 

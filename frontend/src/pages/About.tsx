@@ -1,13 +1,5 @@
-import {
-  ArrowRight,
-  BookOpen,
-  CodeXml,
-  FileSearch,
-  FlaskConical,
-  Play,
-  ShieldCheck,
-  Sparkles,
-} from 'lucide-react'
+import { ArrowRight, CodeXml, Play, ShieldCheck, Sparkles } from 'lucide-react'
+import JourneyCarousel from '../components/JourneyCarousel'
 import MochiStudio from '../components/MochiStudio'
 import Panel from '../components/Panel'
 import { MotionToggle, useWorkspaceMotion } from '../components/WorkspaceMotion'
@@ -28,7 +20,7 @@ export default function About({ replayIntro }: { replayIntro: () => void }) {
           </h2>
           <p>
             Conheça o NekoStrike: um laboratório interativo de segurança ofensiva e automação, com
-            assistência por inteligência artificial planejada.
+            assistência opcional por inteligência artificial e revisão humana.
           </p>
           <div className="hero-actions">
             <a className="button primary" href="#lab">
@@ -36,11 +28,14 @@ export default function About({ replayIntro }: { replayIntro: () => void }) {
             </a>
             <button
               className="button secondary"
-              onClick={() =>
-                document
-                  .getElementById('about-how')
-                  ?.scrollIntoView({ behavior: motion.enabled ? 'smooth' : 'instant' })
-              }
+              onClick={() => {
+                const section = document.getElementById('about-how')
+                section?.focus({ preventScroll: true })
+                section?.scrollIntoView({
+                  block: 'start',
+                  behavior: motion.enabled ? 'smooth' : 'instant',
+                })
+              }}
             >
               Como funciona
             </button>
@@ -75,54 +70,7 @@ export default function About({ replayIntro }: { replayIntro: () => void }) {
           </p>
         </div>
       </Panel>
-      <section id="about-how" className="about-how" aria-labelledby="about-how-title">
-        <p className="eyebrow">DA CURIOSIDADE À EVIDÊNCIA</p>
-        <h2 id="about-how-title" data-reveal="fade-in">
-          Como funciona?
-        </h2>
-        <div className="about-steps">
-          {[
-            {
-              title: 'Explore',
-              text: 'Conheça a API e o ambiente controlado. Os dados do laboratório são fictícios.',
-              icon: BookOpen,
-              href: '#overview',
-            },
-            {
-              title: 'Investigue',
-              text: 'Execute os cenários locais de BOLA, exposição de campos e configuração de erros.',
-              icon: FlaskConical,
-              href: '#lab',
-            },
-            {
-              title: 'Analise',
-              text: 'Leia achados, respostas, controles e recomendações. Revisado não significa corrigido.',
-              icon: FileSearch,
-              href: '#findings',
-            },
-            {
-              title: 'Documente',
-              text: 'Exporte o histórico em Markdown. O relatório atual é determinístico, sem IA.',
-              icon: CodeXml,
-              href: '#findings',
-            },
-          ].map(({ title, text, icon: Icon, href }, index) => (
-            <a
-              className="about-step"
-              key={title}
-              href={href}
-              data-reveal="fade-up"
-              data-reveal-index={index}
-            >
-              <span className="eyebrow">0{index + 1}</span>
-              <Icon size={24} />
-              <h3>{title}</h3>
-              <p>{text}</p>
-              <ArrowRight size={17} aria-hidden="true" />
-            </a>
-          ))}
-        </div>
-      </section>
+      <JourneyCarousel />
       <div className="overview-grid">
         <Panel title="Conheça a Mochi" eyebrow="SUA COMPANHEIRA DE WORKSPACE" reveal="scale">
           <p>
@@ -130,8 +78,8 @@ export default function About({ replayIntro }: { replayIntro: () => void }) {
             animações e falas locais não são análises por IA.
           </p>
           <p>
-            A integração da Mochi está implementada e desativada por padrão. A validação com um
-            provedor real ainda está pendente. Confira a configuração na página Mochi AI.
+            A Mochi interpreta evidências e mantém análises salvas para consulta. A geração é
+            desativada por padrão; confira o estado real do provedor na página Mochi AI.
           </p>
           <a className="text-link" href="#mochi">
             Visitar o cantinho da Mochi <ArrowRight size={16} />
@@ -142,7 +90,7 @@ export default function About({ replayIntro }: { replayIntro: () => void }) {
             <li>Somente o laboratório interno do projeto; nenhum alvo externo arbitrário.</li>
             <li>Resultados apoiados em evidências verificáveis e controles.</li>
             <li>Severidade qualitativa por cenário; sem CVSS inventado.</li>
-            <li>Futuras interpretações de IA estarão sujeitas a validação e revisão humana.</li>
+            <li>Interpretações de IA passam por validação e exigem revisão humana.</li>
           </ul>
           <p>
             API conectada confirma somente uma resposta válida do backend, não segurança da
@@ -171,7 +119,7 @@ export default function About({ replayIntro }: { replayIntro: () => void }) {
               ],
               [
                 'Persistência',
-                'SQLite: execuções, evidências e estado de revisão. Backup por comando local.',
+                'SQLite: execuções, evidências, análises e revisão. Backup por comando local.',
               ],
               [
                 'Qualidade',
@@ -179,7 +127,7 @@ export default function About({ replayIntro }: { replayIntro: () => void }) {
               ],
               [
                 'Relatórios e IA',
-                'Markdown determinístico disponível. Mochi AI opcional, com validação real pendente. PDF no produto ainda não implementado.',
+                'Markdown com evidências e análises salvas opcionais. Mochi AI validada em uma amostra BOLA real; revisão humana pendente. PDF no produto ainda não implementado.',
               ],
             ].map(([title, text], index) => (
               <div key={title} data-reveal="fade-up" data-reveal-index={index}>

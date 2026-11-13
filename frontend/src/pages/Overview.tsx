@@ -21,17 +21,22 @@ import MetricCard from '../components/MetricCard'
 import type { WorkspaceState } from '../useWorkspace'
 import { labChecks } from '../lab-checks'
 import { useScrollReveal } from '../useScrollReveal'
+import type { AIState } from '../useAI'
+import { providerPresentation } from '../components/AIProviderStatus'
 
 export default function Overview({
   connection,
   verify,
   workspace,
+  ai,
 }: {
   connection: Connection
   verify: ReactNode
   workspace: WorkspaceState
+  ai: AIState
 }) {
   const revealScope = useScrollReveal()
+  const provider = providerPresentation(ai)
   return (
     <div className="overview-page workspace-page" ref={revealScope}>
       <section className="sakura-hero overview-hero" data-reveal="fade-in">
@@ -218,12 +223,18 @@ export default function Overview({
             </span>
             <div>
               <strong>Mochi AI</strong>
-              <small>Análise assistida por evidências</small>
+              <small>{provider.detail}</small>
+              <a className="text-link" href="#mochi">
+                Consultar análises salvas
+              </a>
             </div>
             <span className="service-state">
-              {connection.status === 'online' && connection.data.ai.status === 'configured'
-                ? 'IA configurada'
-                : 'IA indisponível'}
+              {ai.status?.provider === 'test_double' && 'Simulação · '}
+              {provider.state === 'disabled'
+                ? 'Geração desativada'
+                : provider.state === 'available'
+                  ? 'Configurada'
+                  : provider.label}
             </span>
           </div>
           <div className="local-notice">
@@ -248,7 +259,7 @@ export default function Overview({
             <span>02</span> Investigar <ChevronRight size={14} />
           </a>
           <a href="#mochi">
-            <span>03</span> Mochi AI · em breve <ChevronRight size={14} />
+            <span>03</span> Mochi AI Studio <ChevronRight size={14} />
           </a>
           <a href="#findings">
             <span>04</span> Relatar <ChevronRight size={14} />

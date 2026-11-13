@@ -32,6 +32,7 @@ export default function MetricCard({
       className="metric-card"
       aria-labelledby={titleId}
       aria-busy={loading}
+      data-loading={loading || undefined}
       data-reveal="fade-up"
       data-reveal-index={revealIndex}
     >

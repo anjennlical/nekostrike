@@ -1,13 +1,19 @@
 import { useId } from 'react'
 
 /** Original vector scene. No reference image is embedded. */
-export default function MochiStudio({ analyzing = false }: { analyzing?: boolean }) {
+export default function MochiStudio({
+  mood = 'idle',
+}: {
+  mood?: 'idle' | 'thinking' | 'success' | 'warning' | 'concerned'
+}) {
+  const analyzing = mood === 'thinking'
   const id = useId().replaceAll(':', '')
   const paint = (name: string) => `url(#${id}-${name})`
   return (
     <svg
       className="mochi-studio"
       data-analyzing={analyzing ? 'true' : 'false'}
+      data-mood={mood}
       viewBox="0 0 600 440"
       role="img"
       aria-labelledby={`${id}-title ${id}-desc`}
@@ -18,7 +24,13 @@ export default function MochiStudio({ analyzing = false }: { analyzing?: boolean
         Ao lado, uma caneca; pela janela, lua e cidade violeta. Sem som.
         {analyzing
           ? 'Mochi concentrada enquanto a requisição está em andamento.'
-          : 'Cena decorativa; a animação não indica processamento de IA.'}
+          : mood === 'concerned'
+            ? 'Mochi preocupada com a falha na análise.'
+            : mood === 'warning'
+              ? 'Mochi atenta ao risco do achado selecionado.'
+              : mood === 'success'
+                ? 'Mochi celebra a chegada da resposta, não uma correção da vulnerabilidade.'
+                : 'Cena decorativa; a animação não indica processamento de IA.'}
       </desc>
       <defs>
         <linearGradient id={`${id}-sky`} x2="0.2" y2="1">
@@ -196,7 +208,13 @@ export default function MochiStudio({ analyzing = false }: { analyzing?: boolean
         <ellipse cx="373" cy="212" rx="19" ry="10" fill="#f0aac8" opacity=".8" />
         <path
           className="studio-eyes studio-moving"
-          d="M270 190q12-17 24 0m48 0q12-17 24 0"
+          d={
+            mood === 'concerned'
+              ? 'M270 185l24 8m48 0 24-8'
+              : mood === 'warning' || analyzing
+                ? 'M270 190h24m48 0h24'
+                : 'M270 190q12-17 24 0m48 0q12-17 24 0'
+          }
           fill="none"
           stroke="#69425c"
           strokeWidth="5"
@@ -204,7 +222,7 @@ export default function MochiStudio({ analyzing = false }: { analyzing?: boolean
         />
         <path d="m311 207 7 5 7-5Z" fill="#bd7298" />
         <path
-          d="M318 213q-4 15-15 6m15-6q4 15 15 6"
+          d={mood === 'concerned' ? 'M305 224q13-12 26 0' : 'M318 213q-4 15-15 6m15-6q4 15 15 6'}
           fill="none"
           stroke="#69425c"
           strokeWidth="3"

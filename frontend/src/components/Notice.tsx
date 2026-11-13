@@ -16,10 +16,21 @@ export default function Notice({ message }: { message: string }) {
   }, [closing, motion.enabled])
   if (hidden) return null
   return (
-    <div className="experience-notice" data-closing={closing || undefined}>
+    <div
+      className="experience-notice"
+      data-closing={closing || undefined}
+      inert={closing || undefined}
+    >
       <CircleCheck size={18} aria-hidden="true" />
       <p role="status">{message}</p>
-      <button type="button" aria-label="Dispensar confirmação" onClick={() => setClosing(true)}>
+      <button
+        type="button"
+        aria-label="Dispensar confirmação"
+        onClick={() => {
+          document.getElementById('main-content')?.focus({ preventScroll: true })
+          setClosing(true)
+        }}
+      >
         <X size={16} />
       </button>
     </div>

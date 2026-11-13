@@ -1,6 +1,7 @@
 """Project saved evidence into a bounded, allowlisted factual context; never transmit raw bodies."""
 import json
 import re
+import hashlib
 from uuid import UUID
 from .provider import AIError
 from .schemas import Analysis
@@ -20,6 +21,12 @@ CONTRACTS = {
         ("error_response", "/lab/error", "anonymous", "vulnerable", 500, 500),
         ("negative_control", "/lab/error", "anonymous", "fixed", 500, 500)]),
 }
+
+
+def source_fingerprint(source: dict) -> str:
+    """Detect changes without persisting raw evidence or treating review as an evidence edit."""
+    finding = {key: value for key, value in source['finding'].items() if key != 'review_status'}
+    return hashlib.sha256(json.dumps({'finding': finding, 'run': source['run']}, sort_keys=True).encode()).hexdigest()
 
 
 def require(condition):
@@ -87,3 +94,32 @@ def validate_analysis(analysis: Analysis, context: dict) -> None:
     # A conservative identifier filter supplements (not replaces) human semantic review.
     if re.search(r"https?://|www\.|/[A-Za-z_]|\b(?:\d{1,3}\.){3}\d{1,3}\b|\b[0-9a-f]{8}-[0-9a-f-]{27,}\b|\bCVSS\b", prose, re.I):
         raise AIError("ungrounded_output", "A resposta incluiu identificadores fora das referências estruturadas e foi descartada.")
+
+
+def validate_saved_context(context: dict) -> str:
+    """Validate an immutable, minimized snapshot against the fixed lab contracts.
+
+    Returns the original run UUID. No current evidence is substituted here.
+    """
+    UUID(context["finding_id"])
+    check = context["check_type"]
+    severity, category, contracts = CONTRACTS[check]
+    run_id = context["evidence"][0]["evidence_id"].split(":")[0]
+    UUID(run_id)
+    expected = {"finding_id": context["finding_id"], "check_type": check, "category": category,
+                "severity": severity, "verdict": "vulnerable", "educational_fixture": True, "evidence": []}
+    for index, (scenario, path, actor, mode, expected_status, status) in enumerate(contracts):
+        if check == "bola" and index < 2:
+            facts = {"owner": "alice" if index == 0 else "bob", "owner_matches_actor": index == 0}
+        elif check == "data_exposure" and index < 2:
+            facts = {"public_fields": ["id", "display_name"], "private_fields_returned": ["email", "internal_note"] if index == 1 else []}
+        elif check == "security_misconfiguration":
+            facts = {"simulated": True, "debug_fields_returned": ["exception", "file", "line"] if index == 1 else []}
+        else:
+            facts = {"access_denied": True}
+        expected["evidence"].append({"evidence_id": f"{run_id}:{scenario}", "path": path, "actor": actor,
+                                    "status": status, "method": "GET", "scenario": scenario,
+                                    "expected_status": expected_status, "lab_mode": mode, "facts": facts})
+    # JSON equality also distinguishes bool from int and rejects extra/untrusted fields.
+    require(json.dumps(context, sort_keys=True) == json.dumps(expected, sort_keys=True))
+    return run_id

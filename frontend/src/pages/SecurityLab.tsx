@@ -144,7 +144,9 @@ export default function SecurityLab({
         )}
       </div>
       <Panel title={selectedCheck.title} eyebrow={selectedCheck.eyebrow} reveal={false}>
-        <p className="panel-description">{selectedCheck.description}</p>
+        <p className="panel-description motion-selection" key={checkType}>
+          {selectedCheck.description}
+        </p>
         <p className="learning-note">
           <CircleHelp size={18} aria-hidden="true" />
           <span>
@@ -197,6 +199,7 @@ export default function SecurityLab({
         {displayedRun && (
           <div
             className="run-result"
+            data-verdict={displayedRun.verdict}
             data-reveal="fade-in"
             ref={resultPanel}
             tabIndex={-1}
@@ -243,15 +246,16 @@ export default function SecurityLab({
             {checkedAt && <span className="muted">Última resposta: {checkedAt}</span>}
           </div>
           {connection.data && (
-            <div className="response-frame">
-              <div className="response-heading">
-                <span>RESPOSTA DO BACKEND</span>
-                <span>JSON · última verificação</span>
-              </div>
-              <pre className="response-code" aria-label="Resposta real do health check">
+            <details className="response-frame health-response">
+              <summary>Ver resposta técnica · JSON da última verificação</summary>
+              <pre
+                className="response-code"
+                tabIndex={0}
+                aria-label="Resposta real do health check"
+              >
                 {JSON.stringify(connection.data, null, 2)}
               </pre>
-            </div>
+            </details>
           )}
         </Panel>
         <Panel title="Limites claros, desde o início" eyebrow="ESCOPO DO LAB" revealIndex={1}>

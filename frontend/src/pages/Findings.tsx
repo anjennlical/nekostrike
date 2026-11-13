@@ -21,6 +21,7 @@ export default function Findings({
   const [exporting, setExporting] = useState(false)
   const [exportError, setExportError] = useState<string | null>(null)
   const [exportNotice, setExportNotice] = useState<string | null>(null)
+  const [includeAI, setIncludeAI] = useState(false)
   const findings = workspace.data?.findings.filter(
     (finding) => filter === 'all' || finding.review_status === filter,
   )
@@ -29,7 +30,7 @@ export default function Findings({
     setExportError(null)
     setExportNotice(null)
     try {
-      const response = await fetch('/api/reports/markdown', {
+      const response = await fetch(`/api/reports/markdown${includeAI ? '?include_ai=true' : ''}`, {
         cache: 'no-store',
         signal: AbortSignal.timeout(10000),
       })
@@ -76,7 +77,7 @@ export default function Findings({
           </label>
         </div>
         {workspace.data && (
-          <p className="results-count" role="status">
+          <p className="results-count motion-selection" key={filter} role="status">
             {workspace.loading
               ? 'Atualizando o histórico…'
               : `Registros exibidos: ${findings?.length ?? 0} de ${workspace.data.findings.length}.`}
@@ -175,27 +176,29 @@ export default function Findings({
                       Execução: {finding.run_id}
                     </p>
                   </details>
-                  <button
-                    className="button secondary"
-                    disabled={!!workspace.busy}
-                    aria-busy={workspace.busy === finding.id}
-                    onClick={() =>
-                      void workspace.review(
-                        finding.id,
-                        finding.review_status === 'reviewed' ? 'pending' : 'reviewed',
-                      )
-                    }
-                  >
-                    <FileCheck2 size={16} />
-                    {workspace.busy === finding.id
-                      ? 'Salvando…'
-                      : finding.review_status === 'reviewed'
-                        ? 'Reabrir revisão'
-                        : 'Marcar como revisado'}
-                  </button>
-                  <p className="review-hint">
-                    Revisar confirma sua conferência da evidência; não corrige a vulnerabilidade.
-                  </p>
+                  <div className="finding-review-actions">
+                    <button
+                      className="button secondary"
+                      disabled={!!workspace.busy}
+                      aria-busy={workspace.busy === finding.id}
+                      onClick={() =>
+                        void workspace.review(
+                          finding.id,
+                          finding.review_status === 'reviewed' ? 'pending' : 'reviewed',
+                        )
+                      }
+                    >
+                      <FileCheck2 size={16} />
+                      {workspace.busy === finding.id
+                        ? 'Salvando…'
+                        : finding.review_status === 'reviewed'
+                          ? 'Reabrir revisão'
+                          : 'Marcar como revisado'}
+                    </button>
+                    <p className="review-hint">
+                      Revisar confirma sua conferência da evidência; não corrige a vulnerabilidade.
+                    </p>
+                  </div>
                 </article>
               )
             })}
@@ -208,7 +211,21 @@ export default function Findings({
             <h3>Seu histórico, documentado.</h3>
             <p>
               Markdown com execuções, requisições, respostas, severidade, recomendações e estado de
-              revisão. Inclui todo o histórico, independentemente do filtro acima. Sem IA.
+              revisão. Inclui todo o histórico, independentemente do filtro acima. Sem IA por
+              padrão.
+            </p>
+            <label className="ai-export-option">
+              <input
+                type="checkbox"
+                checked={includeAI}
+                disabled={exporting}
+                onChange={(event) => setIncludeAI(event.target.checked)}
+              />
+              Incluir a análise salva mais recente de cada achado
+            </label>
+            <p className="ai-help">
+              A opção acrescenta um apêndice identificado, inclusive análises com revisão pendente.
+              Exportar não faz chamadas à IA.
             </p>
             <p>Revisado indica conferência humana; não significa que o achado foi corrigido.</p>
           </div>

@@ -3,7 +3,8 @@ import SecurityLab from './pages/SecurityLab'
 import Findings from './pages/Findings'
 import MochiAI from './pages/MochiAI'
 import About from './pages/About'
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react'
+import { createRouteNavigation, routeFromHash, subscribeHashNavigation } from './route-navigation'
 import {
   Activity,
   ArrowUpRight,
@@ -56,7 +57,7 @@ const pages = [
     id: 'mochi',
     label: 'Mochi AI',
     icon: Sparkles,
-    caption: 'Uma parceira para transformar evidências em clareza.',
+    caption: 'De evidências técnicas a descobertas mais claras. ♡',
   },
   {
     id: 'about',
@@ -67,8 +68,7 @@ const pages = [
 ] as const
 type Page = (typeof pages)[number]['id']
 function currentPage(): Page {
-  const route = window.location.hash.slice(1)
-  return pages.find((page) => page.id === route)?.id ?? 'overview'
+  return routeFromHash(window.location.hash) ?? 'overview'
 }
 
 export default function App() {
@@ -91,6 +91,18 @@ export default function App() {
   }
   const menuButton = useRef<HTMLButtonElement>(null)
   const navigation = useRef<HTMLElement>(null)
+  const pageTitle = useRef<HTMLHeadingElement>(null)
+  const [routeNavigation] = useState(() =>
+    createRouteNavigation({
+      initialPage: page,
+      onRoute: (next) => {
+        setPage(next)
+        setMenuOpen(false)
+      },
+      resetViewport: () => window.scrollTo({ top: 0, left: 0, behavior: 'instant' }),
+      focusHeading: () => pageTitle.current?.focus({ preventScroll: true }),
+    }),
+  )
   const { connection, refresh, lastSuccess } = useHealth()
   const workspace = useWorkspace()
   const ai = useAI()
@@ -123,15 +135,11 @@ export default function App() {
     window.addEventListener('scroll', scroll, { passive: true })
     return () => window.removeEventListener('scroll', scroll)
   }, [])
-  useEffect(() => {
-    const handleHash = () => {
-      setPage(currentPage())
-      setMenuOpen(false)
-      window.scrollTo({ top: 0 })
-    }
-    window.addEventListener('hashchange', handleHash)
-    return () => window.removeEventListener('hashchange', handleHash)
-  }, [])
+  useEffect(() => subscribeHashNavigation(window, routeNavigation), [routeNavigation])
+  useLayoutEffect(() => {
+    // The destination DOM exists now. Never scroll the outgoing page before commit.
+    routeNavigation.afterCommit(page)
+  }, [page, routeNavigation])
   useEffect(() => {
     document.title = `${selected.label} · NekoStrike`
   }, [selected.label])
@@ -215,7 +223,8 @@ export default function App() {
                 className={`nav-link ${page === id ? 'active' : ''}`}
                 aria-current={page === id ? 'page' : undefined}
                 onClick={() => {
-                  if (menuOpen) document.getElementById('main-content')?.focus()
+                  if (menuOpen && page === id)
+                    document.getElementById('main-content')?.focus({ preventScroll: true })
                   setMenuOpen(false)
                 }}
               >
@@ -234,7 +243,8 @@ export default function App() {
             href="#about"
             aria-current={page === 'about' ? 'page' : undefined}
             onClick={() => {
-              if (menuOpen) document.getElementById('main-content')?.focus()
+              if (menuOpen && page === 'about')
+                document.getElementById('main-content')?.focus({ preventScroll: true })
               setMenuOpen(false)
             }}
           >
@@ -309,8 +319,8 @@ export default function App() {
               <div className="page-kicker">
                 NEKOSTRIKE / {page === 'overview' ? 'VISÃO GERAL' : selected.label.toUpperCase()}
               </div>
-              <h1>
-                {selected.label}
+              <h1 ref={pageTitle} tabIndex={-1}>
+                {page === 'mochi' ? 'Mochi AI Studio' : selected.label}
                 <span className="heading-dot">.</span>
               </h1>
               <p>{selected.caption}</p>
@@ -356,27 +366,29 @@ export default function App() {
               <Notice key={workspace.notice} message={workspace.notice} />
             )}
           </div>
-          {page === 'overview' && (
-            <Overview connection={connection} verify={verify} workspace={workspace} />
-          )}
+          <div className="route-surface" key={page}>
+            {page === 'overview' && (
+              <Overview connection={connection} verify={verify} workspace={workspace} ai={ai} />
+            )}
 
-          {page === 'lab' && (
-            <SecurityLab
-              connection={connection}
-              verify={verify}
-              checkedAt={checkedAt}
-              workspace={workspace}
-              checkType={checkType}
-              setCheckType={setCheckType}
-            />
-          )}
+            {page === 'lab' && (
+              <SecurityLab
+                connection={connection}
+                verify={verify}
+                checkedAt={checkedAt}
+                workspace={workspace}
+                checkType={checkType}
+                setCheckType={setCheckType}
+              />
+            )}
 
-          {page === 'findings' && (
-            <Findings workspace={workspace} filter={findingFilter} setFilter={setFindingFilter} />
-          )}
+            {page === 'findings' && (
+              <Findings workspace={workspace} filter={findingFilter} setFilter={setFindingFilter} />
+            )}
 
-          {page === 'mochi' && <MochiAI workspace={workspace} ai={ai} />}
-          {page === 'about' && <About replayIntro={replayIntro} />}
+            {page === 'mochi' && <MochiAI workspace={workspace} ai={ai} />}
+            {page === 'about' && <About replayIntro={replayIntro} />}
+          </div>
           <footer className="page-footer">
             <span>
               <PawPrint size={13} /> Feito com cuidado. Construído com evidências.
@@ -428,37 +440,43 @@ export default function App() {
               <X size={19} />
             </button>
           </div>
-          <h3>Aparência</h3>
-          <p>
-            Sakura Daydream traz rosa claro. Midnight Sakura combina ameixa e lavanda. Sistema
-            acompanha a preferência do dispositivo.
-          </p>
-          <ThemeSelect />
-          <h3>Movimento</h3>
-          <p>
-            A pausa vale em todas as páginas desta sessão. A preferência de movimento reduzido do
-            sistema sempre prevalece.
-          </p>
-          <MotionToggle />
-          <h3>Abertura</h3>
-          <p>
-            Uma apresentação visual curta, sem relação com o carregamento de dados. Escape ou Pular
-            introdução encerram a sequência.
-          </p>
-          <button
-            type="button"
-            className="button secondary"
-            disabled={!motion.enabled}
-            onClick={() => {
-              replayPending.current = true
-              setPreferencesOpen(false)
-            }}
-          >
-            Rever introdução
-          </button>
-          {!motion.enabled && (
-            <p>Reprodução desativada enquanto o movimento estiver reduzido ou pausado.</p>
-          )}
+          <section className="dialog-group" aria-labelledby="preferences-appearance">
+            <h3 id="preferences-appearance">Aparência</h3>
+            <p>
+              Sakura Daydream traz rosa claro. Midnight Sakura combina ameixa e lavanda. Sistema
+              acompanha a preferência do dispositivo.
+            </p>
+            <ThemeSelect />
+          </section>
+          <section className="dialog-group" aria-labelledby="preferences-motion">
+            <h3 id="preferences-motion">Movimento</h3>
+            <p>
+              A pausa vale em todas as páginas desta sessão. A preferência de movimento reduzido do
+              sistema sempre prevalece.
+            </p>
+            <MotionToggle />
+          </section>
+          <section className="dialog-group" aria-labelledby="preferences-intro">
+            <h3 id="preferences-intro">Abertura</h3>
+            <p>
+              Uma apresentação visual curta, sem relação com o carregamento de dados. Escape ou
+              Pular introdução encerram a sequência.
+            </p>
+            <button
+              type="button"
+              className="button secondary"
+              disabled={!motion.enabled}
+              onClick={() => {
+                replayPending.current = true
+                setPreferencesOpen(false)
+              }}
+            >
+              Rever introdução
+            </button>
+            {!motion.enabled && (
+              <p>Reprodução desativada enquanto o movimento estiver reduzido ou pausado.</p>
+            )}
+          </section>
         </div>
       </Dialog>
       <CinematicIntro open={introOpen} onClose={closeIntro} automatic={introAutomatic} />

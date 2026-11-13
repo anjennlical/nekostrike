@@ -13,6 +13,10 @@ import './themes.css'
 import './sakura-experience.css'
 import './scroll-reveal.css'
 import './mochi-ai.css'
+import './mochi-studio.css'
+import './premium-motion.css'
+import './sakura-final.css'
+import './workspace-layout.css'
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>

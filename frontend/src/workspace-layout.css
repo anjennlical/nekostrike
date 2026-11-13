@@ -1,0 +1,296 @@
+/* 2.6 geometry and reading scale. Colors, artwork, state and motion stay in their owners. */
+html {
+  /* Keep desktop centering stable when navigating between short and long routes. */
+  scrollbar-gutter: stable;
+}
+.sakura-theme {
+  --layout-content-max: 1600px;
+  --layout-sidebar: 238px;
+  --layout-gutter: clamp(16px, 2vw, 32px);
+  --layout-section-gap: 24px;
+  --space-card: clamp(18px, 2vw, 28px);
+}
+.sakura-theme .main-shell {
+  min-width: 0;
+}
+.sakura-theme main {
+  width: 100%;
+  max-width: calc(var(--layout-content-max) + 2 * var(--layout-gutter));
+  margin-inline: auto;
+  padding: 28px var(--layout-gutter) 24px;
+}
+.sakura-theme .topbar {
+  padding-inline: var(--layout-gutter);
+}
+.route-surface {
+  container: workspace / inline-size;
+}
+.sakura-theme .page-heading {
+  gap: 24px;
+  margin-bottom: var(--layout-section-gap);
+}
+.sakura-theme .page-heading > div > p {
+  font-size: 15px;
+  line-height: 1.7;
+}
+.sakura-theme .button {
+  font-size: 14px;
+  white-space: normal;
+  overflow-wrap: break-word;
+}
+.sakura-theme .filter-label select {
+  min-width: 0;
+  max-width: 100%;
+  font-size: 15px;
+}
+.sakura-theme :is(.overview-page, .lab-page, .about-page) .overview-grid {
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--layout-section-gap);
+}
+.sakura-theme :is(.overview-page, .lab-page, .findings-page, .about-page) .sakura-panel {
+  padding: var(--space-card);
+}
+.sakura-theme
+  :is(.overview-page, .lab-page, .findings-page, .about-page)
+  :is(
+    .panel-description,
+    .sakura-hero-copy > p,
+    .lab-banner p,
+    .check-list li,
+    .finding-record p,
+    .findings-toolbar > p,
+    .planned-test p,
+    .report-export p,
+    .about-story p,
+    .about-limits,
+    .architecture-grid p
+  ) {
+  font-size: 15px;
+  line-height: 1.75;
+}
+.sakura-theme
+  :is(.overview-page, .lab-page, .findings-page)
+  :is(
+    .record-meta,
+    .review-hint,
+    .local-notice p,
+    .panel-foot,
+    .results-count,
+    .recent-run small,
+    .service-row small,
+    .metric-card > p
+  ) {
+  font-size: 14px;
+  line-height: 1.65;
+}
+.sakura-theme :is(.overview-page, .lab-page, .findings-page) .subtle-tag {
+  font-size: 13px;
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+
+/* Overview: cards reorganize instead of shrinking their text at viewport breakpoints. */
+.sakura-theme .overview-page .overview-hero {
+  grid-template-columns: minmax(0, 1fr);
+}
+.sakura-theme .overview-page .sakura-hero-copy {
+  padding: var(--space-card);
+}
+.sakura-theme .overview-page .overview-mascot {
+  width: min(100%, 320px);
+  margin: 12px auto 24px;
+}
+.sakura-theme .overview-page .metrics-grid {
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 220px), 1fr));
+  gap: 20px;
+  margin-block: var(--layout-section-gap);
+}
+.sakura-theme .overview-page .metric-card {
+  padding: var(--space-card);
+}
+.sakura-theme .overview-page .metric-top {
+  padding-right: 0;
+  gap: 12px;
+}
+.sakura-theme .overview-page .metric-icon {
+  position: static;
+}
+.sakura-theme .overview-page .metric-value {
+  flex-direction: row;
+  flex-wrap: wrap;
+  align-items: baseline;
+  font-size: 38px;
+  gap: 8px 12px;
+}
+.sakura-theme .overview-page :is(.recent-run strong, .service-row strong) {
+  font-size: 15px;
+}
+.sakura-theme .overview-page .service-state {
+  font-size: 13px;
+  overflow-wrap: anywhere;
+}
+.sakura-theme .overview-page .service-row .text-link {
+  margin-top: 8px;
+}
+
+/* Lab: use the panel's width; preserve a full reading lane for HTTP evidence. */
+.sakura-theme .lab-scenarios {
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 300px), 1fr));
+  gap: 20px;
+}
+.sakura-theme .lab-scenarios article {
+  min-width: 0;
+  padding: var(--space-card);
+}
+.sakura-theme .lab-scenarios p {
+  font-size: 15px;
+  line-height: 1.75;
+}
+.sakura-theme .lab-page .test-grid {
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 240px), 1fr));
+  gap: 20px;
+}
+.sakura-theme .response-frame {
+  min-width: 0;
+  max-width: 100%;
+}
+.sakura-theme .response-code {
+  max-width: 100%;
+  overflow: auto;
+  white-space: pre;
+  overflow-wrap: normal;
+  font-size: 14px;
+  line-height: 1.7;
+  tab-size: 2;
+}
+.sakura-theme .response-code:focus-visible {
+  outline: 3px solid var(--focus-ring);
+  outline-offset: -3px;
+}
+.sakura-theme .health-response > summary {
+  padding: 14px 16px;
+  min-height: 44px;
+  cursor: pointer;
+  color: var(--text-main);
+  font-size: 14px;
+  font-weight: 600;
+}
+.sakura-theme .health-response[open] > summary {
+  border-bottom: 1px solid var(--border-soft);
+}
+
+/* Findings stay in DOM/read order, one wide column for expandable evidence. */
+.sakura-theme .findings-toolbar {
+  flex-wrap: wrap;
+  gap: 16px 24px;
+}
+.sakura-theme .findings-toolbar > p {
+  flex: 1 1 28ch;
+}
+.sakura-theme .findings-toolbar .filter-label {
+  min-width: 0;
+  max-width: 100%;
+  flex: 0 1 260px;
+}
+.sakura-theme .finding-record {
+  padding: 18px 20px;
+}
+.sakura-theme .finding-record h3 {
+  margin-block: 12px 4px;
+}
+.sakura-theme .finding-record .finding-detail {
+  margin-block: 12px;
+}
+.sakura-theme .finding-record .finding-detail > summary {
+  min-height: 44px;
+  padding-block: 10px;
+}
+.finding-review-actions {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px 16px;
+}
+.finding-review-actions > .button {
+  flex: 0 0 auto;
+  max-width: 100%;
+}
+.sakura-theme .finding-review-actions > .review-hint {
+  flex: 1 1 32ch;
+  margin: 0;
+}
+.sakura-theme .finding-record > p:not(.record-meta),
+.sakura-theme .finding-detail > p,
+.sakura-theme .remediation p {
+  max-width: 85ch;
+}
+.sakura-theme .finding-list {
+  gap: 16px;
+}
+/* Keep the last line above the fixed 44px top control (20px bottom + a gap). */
+.sakura-theme .page-footer {
+  padding-bottom: 60px;
+  flex-wrap: wrap;
+}
+
+/* Mochi keeps its illustration and surfaces. Only the available-width split changes. */
+.studio-layout {
+  grid-template-columns: minmax(0, 1fr);
+}
+.studio-analysis {
+  container: analysis / inline-size;
+}
+.studio-result-grid {
+  grid-template-columns: minmax(0, 1fr);
+}
+@container analysis (min-width: 680px) {
+  .studio-result-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+@container analysis (max-width: 579px) {
+  .studio-companion,
+  .studio-companion[data-has-result='true'] {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .studio-companion-art {
+    width: min(100%, 265px);
+    justify-self: center;
+  }
+}
+@container workspace (min-width: 700px) {
+  .sakura-theme .overview-page .overview-hero {
+    grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr);
+  }
+}
+@container workspace (min-width: 860px) {
+  .sakura-theme :is(.overview-page, .lab-page, .about-page) .overview-grid {
+    grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr);
+  }
+}
+@container workspace (min-width: 900px) {
+  .studio-layout {
+    grid-template-columns: minmax(300px, 2fr) minmax(0, 3fr);
+  }
+}
+@media (min-width: 901px) {
+  .sakura-theme .sidebar {
+    width: var(--layout-sidebar);
+  }
+  .sakura-theme .main-shell {
+    margin-left: var(--layout-sidebar);
+  }
+}
+@media (max-width: 600px) {
+  .sakura-theme .findings-toolbar .filter-label {
+    flex-basis: auto;
+    width: 100%;
+  }
+  .sakura-theme .lab-page .lab-banner {
+    flex-wrap: wrap;
+  }
+  .sakura-theme .lab-page .lab-banner > div:not(.lab-insignia) {
+    flex: 1 1 200px;
+    min-width: 0;
+  }
+}

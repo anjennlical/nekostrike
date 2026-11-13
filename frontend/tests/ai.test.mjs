@@ -1,6 +1,6 @@
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
-import { aiRequest, parseAIResult, parseAIStatus } from '../src/ai-api.ts'
+import { aiRequest, parseAIResult, parseAIStatus, savedAIRequest } from '../src/ai-api.ts'
 import { parseHealth } from '../src/api.ts'
 
 const finding = { id: 'finding-local', run_id: 'run-local', severity: 'high' }
@@ -36,6 +36,126 @@ const result = {
     limitations: ['Revisão humana necessária.'],
   },
 }
+
+test('analysis format accepts legacy or v1 and rejects unknown versions', () => {
+  assert.equal(parseAIResult(result, finding, run).format_version, undefined)
+  assert.equal(parseAIResult({ ...result, format_version: 1 }, finding, run).format_version, 1)
+  for (const version of [2, '1', true, null])
+    assert.throws(
+      () => parseAIResult({ ...result, format_version: version }, finding, run),
+      /formato/,
+    )
+})
+
+test('usage preserves subsets without double counting and rejects inconsistent metadata', () => {
+  const measured = {
+    ...result,
+    consumption: {
+      usage: {
+        input_tokens: 763,
+        output_tokens: 680,
+        total_tokens: 1443,
+        cached_tokens: 0,
+        reasoning_tokens: 217,
+        cache_write_tokens: null,
+      },
+      usage_status: 'reported',
+      reported_model: 'test-model',
+      service_tier: 'default',
+    },
+  }
+  assert.equal(parseAIResult(measured, finding, run).consumption.usage.total_tokens, 1443)
+  for (const edit of [
+    (r) => (r.consumption.usage.total_tokens += 217),
+    (r) => (r.consumption.usage.input_tokens = -1),
+    (r) => (r.consumption.usage.reasoning_tokens = 681),
+    (r) => (r.consumption.usage.cached_tokens = 764),
+    (r) => (r.consumption.usage.cache_write_tokens = '0'),
+    (r) => (r.consumption.service_tier = '<script>'),
+    (r) => (r.consumption.usage_status = 'not_provided'),
+  ]) {
+    const invalid = structuredClone(measured)
+    edit(invalid)
+    assert.throws(() => parseAIResult(invalid, finding, run), /Consumo/)
+  }
+  assert.equal(
+    parseAIResult(
+      {
+        ...result,
+        consumption: { ...measured.consumption, usage: null, usage_status: 'not_provided' },
+      },
+      finding,
+      run,
+    ).consumption.usage,
+    null,
+  )
+})
+
+test('saved metadata is validated and unknown usage is never treated as zero', () => {
+  const saved = {
+    ...result,
+    record: {
+      id: '11111111-1111-4111-8111-111111111111',
+      created_at: '2026-11-13T12:00:00+00:00',
+      review_status: 'pending',
+      usage: null,
+    },
+    storage_warning: false,
+  }
+  assert.equal(parseAIResult(saved, finding, run).record.usage, null)
+  for (const edit of [
+    (r) => (r.record.usage = 0),
+    (r) => (r.record.review_status = 'fixed'),
+    (r) => (r.record.created_at = 'bad'),
+    (r) => (r.record.id = 'bad'),
+    (r) => (r.storage_warning = true),
+  ]) {
+    const invalid = structuredClone(saved)
+    edit(invalid)
+    assert.throws(() => parseAIResult(invalid, finding, run))
+  }
+})
+
+test('saved reads and review use only local storage routes and never request analysis', async (t) => {
+  const calls = []
+  t.mock.method(globalThis, 'fetch', async (url, options) => {
+    calls.push([url, options])
+    return new Response(JSON.stringify([]), { status: 200 })
+  })
+  await savedAIRequest('finding-local')
+  await savedAIRequest('analysis-local', 'reviewed')
+  assert.equal(calls[0][0], '/api/ai/analyses?finding_id=finding-local')
+  assert.equal(calls[0][1].method, 'GET')
+  assert.equal(calls[1][0], '/api/ai/analyses/analysis-local')
+  assert.equal(calls[1][1].method, 'PATCH')
+  assert.equal(calls[1][1].headers['X-NekoStrike-Client'], 'workspace')
+  assert.deepEqual(JSON.parse(calls[1][1].body), { review_status: 'reviewed' })
+})
+
+test('historical results retain original references and cannot borrow the selected run', () => {
+  const oldRun = '11111111-1111-4111-8111-111111111111'
+  const historical = structuredClone(result)
+  historical.record = {
+    id: '22222222-2222-4222-8222-222222222222',
+    created_at: '2026-11-13T12:00:00+00:00',
+    review_status: 'pending',
+    usage: null,
+    run_id: oldRun,
+    check_type: 'bola',
+    evidence_status: 'historical',
+  }
+  historical.analysis.evidence_used.forEach((e, i) => {
+    e.evidence_id = `${oldRun}:${['baseline', 'cross_user', 'negative_control'][i]}`
+    if (i === 0) e.path = '/lab/orders/order-alice'
+  })
+  assert.equal(parseAIResult(historical, finding, run).record.run_id, oldRun)
+  const wrong = structuredClone(historical)
+  wrong.analysis.evidence_used[0].evidence_id = `${run.id}:baseline`
+  assert.throws(() => parseAIResult(wrong, finding, run))
+  const noOrigin = structuredClone(historical)
+  noOrigin.record.run_id = null
+  assert.throws(() => parseAIResult(noOrigin, finding, run))
+})
 
 test('AI configuration is not a verified provider connection; health remains compatible', () => {
   for (const status of [

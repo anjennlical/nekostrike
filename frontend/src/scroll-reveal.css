@@ -3,10 +3,10 @@
   animation: none;
 }
 .sakura-theme [data-reveal] {
-  --reveal-duration: 540ms;
+  --reveal-duration: var(--motion-reveal);
 }
 .sakura-theme [data-reveal='fade-in'] {
-  --reveal-duration: 400ms;
+  --reveal-duration: var(--motion-gentle);
 }
 .sakura-theme [data-reveal-quick='true'] {
   --reveal-duration: 180ms;

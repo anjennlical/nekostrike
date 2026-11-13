@@ -219,8 +219,8 @@ async def test_cache_expiry_cooldown_and_no_automatic_retry(tmp_path, monkeypatc
     now[0] += 11
     await service.analyze(second)
     now[0] += 600
-    assert not (await service.analyze(first)).cached
-    assert len(provider.contexts) == 3
+    assert (await service.analyze(first)).cached
+    assert len(provider.contexts) == 2  # Durable history outlives the memory cache.
 
 
 async def test_invalid_evidence_and_minimized_context_limit(tmp_path):
@@ -258,17 +258,20 @@ async def test_official_sdk_structured_wire_contract(tmp_path):
         return httpx.Response(200, json=response_envelope(valid_output(context)))
     provider = OpenAIProvider(settings(), transport=httpx.MockTransport(handler))
     result = await provider.analyze(context)
-    assert isinstance(result, Analysis) and result.finding_id == finding and len(calls) == 1
+    assert isinstance(result.analysis, Analysis) and result.analysis.finding_id == finding and len(calls) == 1
+    assert result.consumption.usage is None
 
 
 @pytest.mark.parametrize("failure,code", [(401, "authentication"), (429, "provider_limit"), (503, "provider_unavailable"),
-                                       ("timeout", "timeout"), ("refusal", "refusal"), ("incomplete", "incomplete"), ("invalid", "invalid_output")])
+                                       ("model", "model_unavailable"), ("timeout", "timeout"), ("refusal", "refusal"), ("incomplete", "incomplete"), ("invalid", "invalid_output")])
 async def test_provider_failures_are_sanitized_without_retries(failure, code):
     calls = []
     def handler(request):
         calls.append(request)
         if failure == "timeout":
             raise httpx.ReadTimeout("secret raw error", request=request)
+        if failure == "model":
+            return httpx.Response(404, json={"error": {"code": "model_not_found", "message": "secret model or credential"}})
         if isinstance(failure, int):
             return httpx.Response(failure, json={"error": {"message": "secret raw error", "type": "test"}})
         envelope = response_envelope({})

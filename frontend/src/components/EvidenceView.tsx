@@ -71,7 +71,11 @@ export default function EvidenceView({
                 {item.method} {item.path}
               </span>
             </div>
-            <pre className="response-code" aria-label={`Resposta: ${labels[item.scenario]}`}>
+            <pre
+              className="response-code"
+              tabIndex={0}
+              aria-label={`Resposta: ${labels[item.scenario]}`}
+            >
               {JSON.stringify(item.body, null, 2)}
             </pre>
           </div>

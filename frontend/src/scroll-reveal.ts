@@ -39,10 +39,10 @@ export function createRevealController<T extends object>({
     for (const target of pending.keys()) finish(target)
   }
   return {
-    register(target: T, key?: string) {
+    register(target: T, key?: string, presentedByRoute = false) {
       if (disposed || pending.has(target)) return
       pending.set(target, key)
-      if (failed || (key && seen.has(key)) || !shouldAnimate(target)) {
+      if (presentedByRoute || failed || (key && seen.has(key)) || !shouldAnimate(target)) {
         finish(target)
         return
       }

@@ -1,181 +1,26 @@
-import {
-  ArrowRight,
-  FileSearch,
-  Heart,
-  LockKeyhole,
-  PawPrint,
-  ShieldCheck,
-  Sparkles,
-} from 'lucide-react'
-import MochiStudio from '../components/MochiStudio'
+import { ShieldCheck, Fingerprint, Heart } from 'lucide-react'
 import { MotionToggle } from '../components/WorkspaceMotion'
-import SakuraBloom from '../components/SakuraBloom'
-import Panel from '../components/Panel'
 import { useScrollReveal } from '../useScrollReveal'
 import MochiAnalysis from '../components/MochiAnalysis'
 import type { AIState } from '../useAI'
 import type { WorkspaceState } from '../useWorkspace'
 
-const steps = [
-  {
-    title: 'Receber evidências reais',
-    description:
-      'Resultados estruturados dos testes do laboratório, sem segredos ou dados pessoais reais.',
-    icon: FileSearch,
-  },
-  {
-    title: 'Explicar e recomendar',
-    description:
-      'Apoio para entender o impacto e sugerir correções, sem inventar endpoints ou achados.',
-    icon: Sparkles,
-  },
-  {
-    title: 'Validar antes de apresentar',
-    description: 'Saídas verificadas contra o contrato e as evidências, com revisão humana.',
-    icon: ShieldCheck,
-  },
-]
-
 export default function MochiAI({ ai, workspace }: { ai: AIState; workspace: WorkspaceState }) {
   const revealScope = useScrollReveal()
   return (
-    <div className="mochi-page workspace-page" ref={revealScope}>
-      <section className="sakura-hero" aria-labelledby="mochi-introduction">
-        <SakuraBloom className="hero-blossom" />
-        <div className="sakura-hero-copy" data-reveal="fade-up">
-          <span className="sakura-label">
-            <Sparkles size={15} /> SUA COMPANHEIRA DE EVIDÊNCIAS
-          </span>
-          <h2 id="mochi-introduction">
-            Oi, eu sou a <span>Mochi.</span>
-            <Heart className="hello-heart" size={28} aria-hidden="true" />
-            <br />
-            <span className="hero-subtitle">Evidências são o meu começo.</span>
-          </h2>
-          <p>
-            Vou ajudar a explicar vulnerabilidades, organizar recomendações e transformar evidências
-            em relatórios claros. Uma descoberta de cada vez.
-          </p>
-          <div className="ai-availability">
-            <span className="availability-symbol">
-              <LockKeyhole size={16} />
-            </span>
-            <div>
-              <strong>
-                {ai.pending
-                  ? 'Analisando evidências'
-                  : ai.status?.status === 'configured'
-                    ? 'IA configurada localmente'
-                    : 'IA indisponível'}
-              </strong>
-              <span>
-                {ai.pending
-                  ? 'Requisição em andamento'
-                  : ai.result?.provider === 'openai'
-                    ? 'Resposta recebida nesta sessão · revise as evidências'
-                    : 'Fase 1 · integração implementada, validação real pendente'}
-              </span>
-            </div>
-          </div>
-        </div>
-        <figure className="sakura-studio" data-reveal="scale">
-          <MochiStudio analyzing={ai.pending} />
-          <figcaption>
-            <PawPrint size={13} /> MOCHI’S CORNER <span>FEITO DE CURIOSIDADE & CUIDADO</span>
-          </figcaption>
-          <div className="studio-controls">
-            <p>
-              {ai.pending
-                ? 'Mochi concentrada: uma requisição de análise está em andamento.'
-                : 'Música imaginária e digitação decorativa. Esta animação não indica processamento de IA.'}
-            </p>
-            <MotionToggle />
-          </div>
-        </figure>
-        <div className="hero-bottom-line" aria-hidden="true">
-          <span />
-          <span />
-          <span />
-          <span />
-        </div>
-      </section>
-      <MochiAnalysis ai={ai} workspace={workspace} />
-      <div className="mochi-panels">
-        <Panel
-          className="process-panel"
-          reveal={false}
-          title="Como a análise funciona"
-          eyebrow="IA COM CONTEXTO"
-          action={
-            <span className="panel-seal" aria-hidden="true">
-              <PawPrint size={22} />
-            </span>
-          }
-        >
-          <ol className="sakura-steps">
-            {steps.map(({ title, description, icon: Icon }, index) => (
-              <li key={title} data-reveal="fade-up" data-reveal-index={index}>
-                <span className="step-number">0{index + 1}</span>
-                <div>
-                  <h3>{title}</h3>
-                  <p>{description}</p>
-                </div>
-                <Icon className="step-icon" size={25} strokeWidth={1.5} aria-hidden="true" />
-              </li>
-            ))}
-          </ol>
-          <p className="process-caption">
-            <ShieldCheck size={14} /> Evidências primeiro. Revisão humana, sempre.
-          </p>
-        </Panel>
-        <Panel
-          className="trust-panel"
-          reveal="slide-left"
-          title="Transparência, sempre"
-          eyebrow="ESTADO ATUAL"
-          action={
-            <span className="signal-decoration" aria-hidden="true">
-              <i />
-              <i />
-              <i />
-              <i />
-              <i />
-            </span>
-          }
-        >
-          <div className="sakura-notice">
-            <span className="notice-lock">
-              <LockKeyhole size={24} strokeWidth={1.7} />
-            </span>
-            <div>
-              <h3>Configuração não é prova de conexão.</h3>
-              <p>
-                A integração fica desativada por padrão. Consultar o estado local não faz chamadas à
-                OpenAI.
-              </p>
-            </div>
-          </div>
-          <p className="trust-description">
-            O laboratório continua produzindo evidências e Markdown sem IA. Somente uma análise
-            solicitada, com a integração habilitada e configurada no backend, envia fatos
-            minimizados ao provedor e pode gerar custo. Nenhuma chave é enviada ao frontend.
-          </p>
-          <div className="trust-action">
-            <a className="sakura-button" href="#lab">
-              Ver a base do laboratório <ArrowRight size={19} />
-            </a>
-            <SakuraBloom className="action-blossom" />
-          </div>
-          <div className="trust-footnote">
-            <span className="status-dot" /> Conexão do backend ≠ conexão com IA
-          </div>
-        </Panel>
-      </div>
-      <div className="mochi-signoff" aria-hidden="true" data-reveal="fade-in">
-        <span />
-        <PawPrint size={15} />
-        <span />
-      </div>
+    <div className="mochi-page workspace-page mochi-studio-page" ref={revealScope}>
+      <MochiAnalysis ai={ai} workspace={workspace} motionControl={<MotionToggle compact />} />
+      <footer className="studio-principles" data-reveal="fade-in">
+        <span>
+          <Fingerprint size={16} aria-hidden="true" /> Evidências rastreáveis
+        </span>
+        <span>
+          <ShieldCheck size={16} aria-hidden="true" /> Veredito preservado
+        </span>
+        <span>
+          <Heart size={16} aria-hidden="true" /> Cuidado em cada descoberta
+        </span>
+      </footer>
     </div>
   )
 }

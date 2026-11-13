@@ -1,0 +1,226 @@
+/* Motion 4.0: consumers of the existing shared motion/theme tokens, not another runtime. */
+.dialog-presence {
+  display: contents;
+}
+.sakura-dialog:not(.cinematic-intro) {
+  border-color: var(--border-strong);
+  background: linear-gradient(145deg, var(--surface-hero), var(--surface-panel) 36%);
+  box-shadow:
+    var(--shadow-surface),
+    0 28px 80px #160d254d;
+  scrollbar-gutter: stable;
+}
+.dialog-heading {
+  border-bottom: 1px solid var(--border-soft);
+  padding-bottom: 20px;
+}
+.dialog-heading .eyebrow {
+  color: var(--text-accent);
+}
+.dialog-group {
+  border: 1px solid var(--border-soft);
+  border-radius: 16px;
+  padding: 16px 18px;
+  background: var(--surface-panel);
+  margin-top: 12px;
+}
+.dialog-content .dialog-group h3 {
+  margin: 0;
+}
+.dialog-group:nth-of-type(1) {
+  --dialog-delay: 40ms;
+}
+.dialog-group:nth-of-type(2) {
+  --dialog-delay: 80ms;
+}
+.dialog-group:nth-of-type(3) {
+  --dialog-delay: 120ms;
+}
+.sakura-dialog[data-closing] {
+  pointer-events: none;
+}
+.sakura-dialog .dialog-presence[inert] {
+  pointer-events: none;
+}
+.sakura-theme :is(button, a, select, summary):focus-visible,
+.sakura-dialog :is(button, a, select, summary):focus-visible {
+  outline: 3px solid var(--focus-ring);
+  outline-offset: 4px;
+}
+.sakura-theme select {
+  transition:
+    border-color var(--motion-fast),
+    background-color var(--motion-fast);
+}
+.sakura-theme select:focus-visible {
+  border-color: var(--text-accent);
+}
+.sakura-theme :is(.lab-scenarios > article, .about-step, .finding-record) {
+  transition:
+    border-color var(--motion-normal) var(--motion-ease),
+    background-color var(--motion-normal) var(--motion-ease);
+}
+.sakura-theme .lab-scenarios > article:focus-within,
+.sakura-theme .finding-record:focus-within {
+  border-color: var(--border-strong);
+}
+.sakura-theme .lab-scenarios .button {
+  width: 100%;
+  min-height: 48px;
+}
+.sakura-theme .run-result[data-verdict='vulnerable'] {
+  border-inline-start: 3px solid var(--text-accent);
+}
+.sakura-theme .run-result[data-verdict='protected'] {
+  border-inline-start: 3px solid var(--border-strong);
+}
+.sakura-theme .metric-card[data-loading] .metric-value {
+  color: var(--text-muted);
+}
+.sakura-theme .metric-value {
+  transition: color var(--motion-fast);
+}
+.sakura-theme details:not(.studio-disclosure) > summary {
+  transition:
+    color var(--motion-fast),
+    background-color var(--motion-fast);
+}
+.sakura-theme details[open] > summary {
+  color: var(--text-accent);
+}
+.sakura-theme .experience-notice[data-closing] {
+  pointer-events: none;
+}
+.sakura-theme .sakura-tooltip {
+  transform-origin: top right;
+}
+.sakura-theme .brand-mark {
+  transition: transform var(--motion-normal) var(--motion-ease);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .sakura-dialog[open][data-motion='on']:not([data-closing])::backdrop {
+    animation-duration: var(--motion-backdrop);
+  }
+  .sakura-dialog[open][data-motion='on']:not([data-closing]) .dialog-heading > div,
+  .sakura-dialog[open][data-motion='on']:not([data-closing]) .dialog-group {
+    animation: modal-group-in var(--motion-normal) var(--motion-ease) var(--dialog-delay, 0ms) both;
+  }
+  .sakura-dialog[open][data-motion='on'][data-closing] :is(.dialog-heading, .dialog-group) {
+    animation: modal-group-out var(--motion-fast) ease both;
+  }
+  /* Reaching a control never waits for its decorative entrance. */
+  .sakura-dialog[open] .dialog-group:focus-within {
+    animation: none !important;
+  }
+  .sakura-theme[data-motion='on'] .motion-selection {
+    animation: motion-selection var(--motion-normal) var(--motion-ease) both;
+  }
+  .sakura-theme[data-motion='on'] .metric-card[data-loading] .metric-icon {
+    animation: motion-working 1.4s ease-in-out infinite;
+  }
+  .sakura-theme[data-motion='on'] .lab-scenarios button[aria-busy='true'] > svg {
+    animation: motion-working 1.2s ease-in-out infinite;
+  }
+  .sakura-theme[data-motion='on'] .experience-notice[data-closing] {
+    animation: feedback-leave var(--motion-exit) var(--motion-ease) both;
+  }
+  .sakura-theme[data-motion='on'] .nav-link:active {
+    transform: translateX(2px);
+  }
+  .sakura-theme[data-motion='on'] .sakura-tooltip {
+    transition:
+      opacity var(--motion-fast),
+      transform var(--motion-fast) var(--motion-ease),
+      visibility var(--motion-fast);
+    transform: translateY(-3px) scale(0.98);
+  }
+  .sakura-theme[data-motion='on'] .sakura-tooltip[data-open] {
+    transform: none;
+  }
+  /* Native details retain keyboard behavior and automatic intrinsic height. */
+  @supports (interpolate-size: allow-keywords) {
+    .sakura-theme[data-motion='on'] details {
+      interpolate-size: allow-keywords;
+    }
+    .sakura-theme[data-motion='on'] details::details-content {
+      block-size: 0;
+      opacity: 0;
+      overflow: clip;
+      transition:
+        block-size var(--motion-normal) var(--motion-ease),
+        opacity var(--motion-fast),
+        content-visibility var(--motion-normal) allow-discrete;
+    }
+    .sakura-theme[data-motion='on'] details[open]::details-content {
+      block-size: auto;
+      opacity: 1;
+    }
+    .sakura-theme[data-motion='on'] details:focus-within::details-content {
+      opacity: 1;
+    }
+  }
+  @media (hover: hover) {
+    .sakura-theme[data-motion='on']
+      :is(.button, .sakura-button, .motion-toggle, .icon-button):not(:disabled):hover {
+      transform: translateY(-2px);
+    }
+    .sakura-theme[data-motion='on']
+      :is(.button, .sakura-button, .motion-toggle, .icon-button):not(:disabled):active {
+      transform: translateY(0) scale(0.98);
+    }
+    .sakura-theme[data-motion='on'] .lab-scenarios > article:hover {
+      border-color: var(--border-strong);
+      background: var(--surface-raised);
+    }
+    .sakura-theme[data-motion='on'] .brand:hover .brand-mark {
+      transform: rotate(-4deg) scale(1.04);
+    }
+  }
+}
+@keyframes modal-group-in {
+  from {
+    opacity: 0.55;
+    translate: 0 7px;
+  }
+  to {
+    opacity: 1;
+    translate: 0 0;
+  }
+}
+@keyframes modal-group-out {
+  to {
+    opacity: 0;
+    translate: 0 3px;
+  }
+}
+@keyframes motion-selection {
+  from {
+    opacity: 0.65;
+    translate: 0 4px;
+  }
+  to {
+    opacity: 1;
+    translate: 0 0;
+  }
+}
+@keyframes motion-working {
+  50% {
+    opacity: 0.5;
+    transform: scale(0.94);
+  }
+}
+@keyframes feedback-leave {
+  to {
+    opacity: 0;
+    translate: 0 -5px;
+  }
+}
+@media (max-width: 600px) {
+  .dialog-content {
+    padding: 20px 16px;
+  }
+  .dialog-group {
+    padding: 14px;
+  }
+}

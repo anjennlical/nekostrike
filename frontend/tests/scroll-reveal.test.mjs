@@ -44,6 +44,22 @@ test('entry reveals once and unobserves; late duplicate callbacks do nothing', (
   assert.equal(h.observed.size, 0)
   assert.equal(h.seen.has('finding-1'), true)
 })
+
+test('route entrance owns visible cards; only below-fold cards get a later reveal', () => {
+  const h = harness(),
+    visible = {},
+    below = {}
+  h.controller.register(visible, 'visible', true)
+  h.controller.register(below, 'below')
+  assert.deepEqual(h.calls, [[visible, false]])
+  assert.equal(h.observed.has(visible), false)
+  assert.equal(h.seen.has('visible'), true)
+  h.enter([visible, below])
+  assert.deepEqual(h.calls, [
+    [visible, false],
+    [below, true],
+  ])
+})
 test('remounting a consumed finding after filtering does not replay it', () => {
   const h = harness(),
     original = {},
