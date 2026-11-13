@@ -5,7 +5,7 @@ Dependencies are installed from lockfiles and are not vendored in this source pu
 Inventory: [all locked frontend packages and installed locked Python packages](docs/portfolio/dependency-licenses.json).
 Metadata is an inventory, not a legal compatibility certification. Keep upstream license notices when distributing dependency code or compiled bundles.
 
-## Direct dependencies
+## Direct frontend dependencies and locked Python environment
 
 | Package | Version | Declared license |
 | --- | --- | --- |
